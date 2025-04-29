@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-//import "../styles/signup-form-style.css"; 
+import "../styles/signup-form-style.css"; 
 
 export function SignupForm() {
     const navigate = useNavigate();
@@ -77,8 +77,6 @@ export function SignupForm() {
 
                 <form onSubmit={handleSubmit} className="form">
                     <div className="form-fields">
-                       
-                        <p className="section-subtitle">Enter your information to create an account</p>
 
                         <div className="name-fields">
                             <div className="form-group">
@@ -95,7 +93,7 @@ export function SignupForm() {
                                     className="input-field"
                                 />
                             </div>
-                            <br />
+                           
                             <div className="form-group">
                                 <label htmlFor="lastName" className="input-label">
                                     Last Name
@@ -112,7 +110,7 @@ export function SignupForm() {
                             </div>
                         </div>
 
-                        <hr className="divider" />
+                       
 
                         <div className="form-group">
                             <label htmlFor="email" className="input-label">
@@ -164,7 +162,7 @@ export function SignupForm() {
                         </div>
 
                     </div>
-
+                <div className="submit-button-container">
                     <button
                         type="submit"
                         disabled={isLoading}
@@ -195,7 +193,7 @@ export function SignupForm() {
                             "Create account"
                         )}
                     </button>
-
+                </div>
                     <div className="login-link">
                         Already have an account?{" "}
                         <a href="/login" className="login-text">

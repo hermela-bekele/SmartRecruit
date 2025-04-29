@@ -16,7 +16,13 @@
 
 .main-container {
     min-height: 100vh;
-    background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+    background: linear-gradient(
+        135deg,
+        #0f172a 0%,        /* Deep navy */
+        #1e293b 30%,       /* Dark slate */
+        #334155 70%,       /* Medium slate */
+        #475569 100%      /* Light slate */
+    );
     display: flex;
     align-items: center;
     justify-content: center;
@@ -38,12 +44,12 @@
 .form-container {
     width: 100%;
     max-width: 28rem;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.2);;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);;
     border-radius: 1rem;
-    backdrop-filter: blur(8px);  
-    box-shadow: 0 8px 32px rgba(31, 41, 55, 0.1);  
-    padding: 2rem;
+    backdrop-filter: blur(20px); 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);  
+    padding: 2.5rem;
 }
 
 .header-section {
@@ -66,13 +72,15 @@
 }
 
 .app-title {
-    color: #1f2937;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);  
+    color: #f8fafc;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); 
+    font-weight: 600; 
 }
 
 .app-description {
-    font-size: 0.875rem;
-    color: #6b7280;
+    color: #e2e8f0;
+    font-weight: 500;
 }
 
 .form {
@@ -94,28 +102,30 @@
 }
 
 .input-label {
-    font-size: 0.875rem;
+    color: #f1f5f9;
     font-weight: 500;
-    color: #374151;
-    margin-bottom: 0.25rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .input-field {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    transition: all 0.2s ease;
+    padding: 0.75rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #f8fafc;
+    transition: all 0.3s ease;
 }
 
 .input-field:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(199, 210, 254, 0.2);
 }
 
 .password-header {
+    color: #94a3b8;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -123,33 +133,37 @@
 }
 
 .forgot-password {
-    font-size: 0.875rem;
-    color: #2563eb;
-    text-decoration: none;
+    color: #bfdbfe;
+    font-weight: 500;
     transition: color 0.2s ease;
 }
 
 .forgot-password:hover {
-    color: #1d4ed8;
+    color: #93c5fd;
+    text-decoration: underline;
+}
+.submit-button-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 .submit-button {
     width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #2563eb;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: white;
-    font-weight: 500;
+    font-weight: 600;
     padding: 0.75rem 1.5rem;
     border-radius: 0.5rem;
     transition: background 0.2s ease;
-    border: none;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
+    letter-spacing: 0.025em;
 }
 
 .submit-button:hover {
-    background: #1d4ed8;
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
 }
 
 .submit-button:disabled {
@@ -173,19 +187,27 @@
 
 .signup-link {
     text-align: center;
-    font-size: 0.875rem;
-    color: #6b7280;
+    font-size: 1rem;
+    color: #e2e8f0;
 }
 
 .signup-text {
-    color: #2563eb;
+    color: #bfdbfe;
     font-weight: 500;
-    text-decoration: none;
     transition: color 0.2s ease;
 }
 
 .signup-text:hover {
-    color: #1d4ed8;
+    color: #93c5fd;
+    text-decoration: underline;
+}
+
+.form-container {
+    transition: all 0.3s ease-in-out;
+}
+
+.input-field {
+    transition: all 0.3s ease;
 }
 
 @media (min-width: 640px) {

@@ -1,32 +1,27 @@
+
 .main-container {
     min-height: 100vh;
-    background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+    background: linear-gradient(
+        135deg,
+        #0f172a 0%,
+        #1e293b 30%,
+        #334155 70%,
+        #475569 100%
+    );
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
 }
 
-.toast {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    background: #2563eb;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.375rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    animation: fade-in-up 0.3s ease-out;
-}
-
 .form-container {
     width: 100%;
-    max-width: 28rem;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.2);;
+    max-width: 32rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
     border-radius: 1rem;
-    backdrop-filter: blur(8px);  
-    box-shadow: 0 8px 32px rgba(31, 41, 55, 0.1);  
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
     padding: 2rem;
 }
 
@@ -50,14 +45,16 @@
 }
 
 .app-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1f2937;
+    color: #f8fafc;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .app-description {
+    color: #e2e8f0;
+    font-weight: 500;
     font-size: 0.875rem;
-    color: #6b7280;
 }
 
 .form {
@@ -66,61 +63,107 @@
     gap: 1.5rem;
 }
 
-.form-fields {
+.name-fields {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    gap: 2rem;
+}
+.name-fields .form-group {
+    width: 100%; 
+    margin-bottom: 1rem; 
 }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+
+.name-fields .form-group:last-child {
+    margin-bottom: 0;
 }
+
+
 
 .input-label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: #374151;
-    margin-bottom: 0.25rem;
+    color: #f1f5f9;
 }
 
 .input-field {
-    width: 100%;
+    width: 95%;
     padding: 0.75rem 1rem;
-    border: 1px solid #d1d5db;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 0.5rem;
+    color: #f8fafc;
     font-size: 1rem;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+}
+
+.input-field::placeholder {
+    color: #94a3b8;
 }
 
 .input-field:focus {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 0 3px rgba(199, 210, 254, 0.2);
 }
-.submit-button {
+
+.divider {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 1.5rem 0;
+}
+
+.error-message {
+    color: #f87171;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.submit-button-container {
     width: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
-    background: #2563eb;
-    color: white;
-    font-weight: 500;
+}
+
+.submit-button {
+    width: 100%;
+    max-width:800px;
     padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 0.5rem;
-    transition: background 0.2s ease;
-    border: none;
     cursor: pointer;
+    transition: all 0.3s ease;
+
 }
 
 .submit-button:hover {
-    background: #1d4ed8;
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
 }
 
 .submit-button:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+
+.login-link {
+    text-align: center;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+    margin-top: 1.5rem;
+}
+
+.login-text {
+    color: #bfdbfe;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.login-text:hover {
+    color: #93c5fd;
+    text-decoration: underline;
 }
 
 .spinner {
@@ -129,120 +172,13 @@
     width: 1.25rem;
 }
 
-.spinner-circle {
-    opacity: 0.25;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-.spinner-path {
-    opacity: 0.75;
-}
-
-.section-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-}
-
-.section-subtitle {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin-bottom: 1.5rem;
-}
-
-.name-fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.divider {
-    margin: 1.5rem 0;
-    border: 0;
-    border-top: 1px solid #e5e7eb;
-}
-
-.account-type-group {
-    margin-top: 1rem;
-}
-
-.radio-options {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.radio-label {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    cursor: pointer;
-    font-size: 0.875rem;
-}
-
-.radio-label input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.radio-custom {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    border: 2px solid #d1d5db;
-    border-radius: 50%;
-    position: relative;
-}
-
-.radio-label input:checked ~ .radio-custom {
-    border-color: #2563eb;
-    background-color: #2563eb1a;
-}
-
-.radio-custom::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 0.5rem;
-    height: 0.5rem;
-    background: #2563eb;
-    border-radius: 50%;
-    opacity: 0;
-}
-
-.radio-label input:checked ~ .radio-custom::after {
-    opacity: 1;
-}
-
-.error-message {
-    color: #dc2626;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-}
-
-.login-link {
-    text-align: center;
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin-top: 1rem;
-}
-
-.login-text {
-    color: #2563eb;
-    font-weight: 500;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.login-text:hover {
-    color: #1d4ed8;
-}
-
-@media (max-width: 640px) {
-    .name-fields {
-        grid-template-columns: 1fr;
+@media (min-width: 640px) {
+    .form-container {
+        padding: 2.5rem;
     }
 }
