@@ -1,9 +1,12 @@
-//import { useState } from 'react'
-
 import './App.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { LoginForm } from './components/auth/login-form'
-import { SignupForm } from './components/auth/signup-form'
+import Home from './components/features/Home/page'
+import Alljobs from './components/features/All-jobs/page'
+import  LoginModal  from './components/auth/Login/page'
+//import { SignupForm } from './components/auth/signup/page'
+import Dashboard from './components/Admin/dashboard/page'
+import Applications from './components/Admin/applications/page'
+import Jobs from './components/Admin/jobs/page'
 
 function App() {
 
@@ -11,9 +14,15 @@ function App() {
     <>
   <BrowserRouter>
   <Routes>
-    <Route path="/login" element={<LoginForm />} />
-    <Route path="/signup" element={<SignupForm />} />
-    <Route path="/" element={<LoginForm />} />
+    <Route path="/" element={<Home />} /> 
+    <Route path="/all-jobs" element={<Alljobs />} />
+    {/* <Route path="/job/:id" element={<JobDetailsModal />} /> */}
+    {/* <Route path="/apply/:id" element={<ApplicationForm />} /> */}
+    <Route path="/login" element={<LoginModal />} />
+    {/* <Route path="/signup" element={<SignupForm />} /> */}
+    <Route path="/dashboard" element={<Dashboard />} />
+    <Route path="/applications" element={<Applications />} />
+    <Route path="/jobs" element={<Jobs />} />
   </Routes>
   </BrowserRouter>
     </>

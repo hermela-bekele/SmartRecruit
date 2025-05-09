@@ -1,0 +1,87 @@
+[
+    {
+      "name": "Michael Chen",
+      "email": "michael.c@example.com",
+      "position": "Senior Frontend Developer",
+      "jobId": "ENG-001",
+      "date": "2023-08-14",
+      "status": "under Review",
+      "experience": "7 years",
+      "location": "Austin, TX",
+      "skills": ["Vue", "JavaScript", "Webpack"],
+      "resume": "michael_chen_resume.pdf",
+      "timeline": [
+        { "date": "2023-08-09", "status": "Application Received" },
+        { "date": "2023-08-11", "status": "Screening" },
+        { "date": "2023-08-14", "status": "Technical Assignment" }
+      ]
+    },
+    {
+      "name": "Emma Wilson",
+      "email": "emma.w@example.com",
+      "position": "Full Stack Engineer",
+      "jobId": "ENG-002",
+      "date": "2023-08-16",
+      "status": "Interview",
+      "experience": "4 years",
+      "location": "San Francisco, CA",
+      "skills": ["React", "Node.js", "GraphQL"],
+      "resume": "emma_wilson_resume.pdf",
+      "timeline": [
+        { "date": "2023-08-11", "status": "Application Received" },
+        { "date": "2023-08-14", "status": "Code Challenge" },
+        { "date": "2023-08-16", "status": "Phone Interview" }
+      ]
+    },
+    {
+      "name": "Alex Martinez",
+      "email": "alex.m@example.com",
+      "position": "UX Engineer",
+      "jobId": "UX-001",
+      "date": "2023-08-13",
+      "status": "Offer",
+      "experience": "6 years",
+      "location": "Chicago, IL",
+      "skills": ["Figma", "CSS", "Accessibility"],
+      "resume": "alex_martinez_resume.pdf",
+      "timeline": [
+        { "date": "2023-08-08", "status": "Application Received" },
+        { "date": "2023-08-10", "status": "Portfolio Review" },
+        { "date": "2023-08-13", "status": "Design Challenge" }
+      ]
+    },
+    {
+      "name": "Jordan Taylor",
+      "email": "jordan.t@example.com",
+      "position": "DevOps Engineer",
+      "jobId": "OPS-001",
+      "date": "2023-08-17",
+      "status": "Interview",
+      "experience": "5 years",
+      "location": "Boston, MA",
+      "skills": ["AWS", "Docker", "Terraform"],
+      "resume": "jordan_taylor_resume.pdf",
+      "timeline": [
+        { "date": "2023-08-12", "status": "Application Received" },
+        { "date": "2023-08-15", "status": "Technical Screening" },
+        { "date": "2023-08-17", "status": "System Design Interview" }
+      ]
+    },
+    {
+      "name": "Sophia Kim",
+      "email": "sophia.k@example.com",
+      "position": "Mobile Developer",
+      "jobId": "MOB-001",
+      "date": "2023-08-18",
+      "status": "under Review",
+      "experience": "3 years",
+      "location": "Seattle, WA",
+      "skills": ["React Native", "Swift", "Kotlin"],
+      "resume": "sophia_kim_resume.pdf",
+      "timeline": [
+        { "date": "2023-08-13", "status": "Application Received" },
+        { "date": "2023-08-16", "status": "Take-home Assignment" },
+        { "date": "2023-08-18", "status": "Technical Interview" }
+      ]
+    }
+  ]

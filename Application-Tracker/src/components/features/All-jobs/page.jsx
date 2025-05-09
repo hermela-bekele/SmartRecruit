@@ -1,0 +1,209 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  Search,
+  Menu,
+  Calendar,
+  MapPin,
+} from "lucide-react";
+import JobCard from "../JobCard";
+import JobDetailsModal from "../jobDetailsModal";
+
+
+function JobsPage() {
+  const [jobs, setJobs] = useState([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [filteredJobs, setFilteredJobs] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await fetch("src/data/jobs.json");
+        const data = await response.json();
+        setJobs(data);
+        setFilteredJobs(data);
+      } catch (error) {
+        console.error("Error fetching job data:", error);
+      }
+    };
+
+    fetchJobs();
+  }, []);
+
+  useEffect(() => {
+    const lowerQuery = searchQuery.toLowerCase();
+
+    const filtered = jobs.filter(job => {
+      const matchesSearch = job.title.toLowerCase().includes(lowerQuery) || 
+                          job.company.toLowerCase().includes(lowerQuery) || 
+                          job.description.toLowerCase().includes(lowerQuery);
+      const matchesLocation = selectedLocation ? 
+                          job.location.toLowerCase() === selectedLocation.toLowerCase() : 
+                          true;
+      const matchesCategory = selectedCategory ? 
+                          job.category.toLowerCase() === selectedCategory.toLowerCase() : 
+                          true;
+
+      return matchesSearch && matchesLocation && matchesCategory;
+    });
+
+    setFilteredJobs(filtered);
+  }, [jobs, searchQuery, selectedLocation, selectedCategory]);
+
+  return (
+    <div className="min-h-screen w-screen overflow-x-hidden bg-gradient-to-br from-blue-50 via-blue-50 to-white">
+      {/* Header */}
+      <header className="w-full bg-white backdrop-blur-sm border-b border-blue-100 py-4 px-4 sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto max-w-6xl flex justify-between items-center">
+          {/* Logo */}
+          <a href="/" className="flex items-center">
+            <div className="bg-blue-600 text-white font-bold rounded-lg p-2 mr-2">
+              SM
+            </div>
+            <span className="text-xl font-bold text-blue-800">Smart Recruit</span>
+          </a>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <a
+              href="/"
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Home
+            </a>
+            <a
+              href="/all-jobs"
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Jobs
+            </a>
+          </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden text-blue-600"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden mt-4 px-4 pb-4">
+            <nav className="flex flex-col space-y-4">
+              <a
+                href="/"
+                className="text-blue-600 hover:text-blue-800 font-medium py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Home
+              </a>
+              <a
+                href="/all-jobs"
+                className="text-blue-600 hover:text-blue-800 font-medium py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Jobs
+              </a>
+            </nav>
+          </div>
+        )}
+      </header>
+
+      {/* Main Content */}
+      <section className="w-full py-16 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="bg-white backdrop-blur-lg border border-blue-200 rounded-xl p-6 shadow-lg mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Search and Filter Inputs (Same as Home) */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Job title or keyword"
+                  className="w-full px-10 py-2 bg-white border border-blue-200 rounded-lg text-blue-900 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Search className="absolute left-3 top-2.5 h-5 w-5 text-blue-400" />
+              </div>
+
+              {/* Location Filter */}
+              <div className="relative">
+                <select 
+                  className="w-full px-3 py-2 text-blue-900 border border-blue-200 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                >
+                  <option value="">All Locations</option>
+                  <option value="Remote">Remote</option>
+                  <option value="Austin, TX">Austin, TX</option>
+                  <option value="San Francisco, CA">San Francisco, CA</option>
+                  <option value="New York, NY">New York, NY</option>
+                  <option value="Seattle, WA">Seattle, WA</option>
+                </select>
+                
+              </div>
+
+              {/* Category Filter */}
+              <div className="relative">
+                <select 
+                  className="w-full px-3 py-2 text-blue-900 border border-blue-200 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="">All Categories</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Design">Design</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Product">Product</option>
+                  <option value="Sales">Sales</option>
+                </select>
+                
+              </div>
+            </div>
+          </div>
+
+          {/* Job Listings */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredJobs.length > 0 ? (
+              filteredJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onApply={() => {
+                    setSelectedJob(job);
+                    setShowApplicationForm(false);
+                  }}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <p className="text-blue-600 text-xl">No jobs found matching your criteria</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Job Details Modal */}
+      {selectedJob && (
+        <JobDetailsModal
+          job={selectedJob}
+          onClose={() => setSelectedJob(null)}
+          showApplicationForm={showApplicationForm}
+          setShowApplicationForm={setShowApplicationForm}
+        />
+      )}
+    </div>
+  );
+}
+
+export default JobsPage;
