@@ -7,6 +7,8 @@ import  LoginModal  from './components/auth/Login/page'
 import Dashboard from './components/Admin/dashboard/page'
 import Applications from './components/Admin/applications/page'
 import Jobs from './components/Admin/jobs/page'
+import Settings from './components/Admin/settings/page'
+import AddHr from './components/Admin/addHR/page'
 
 function App() {
 
@@ -23,6 +25,9 @@ function App() {
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/applications" element={<Applications />} />
     <Route path="/jobs" element={<Jobs />} />
+    <Route path="/settings" element={<Settings />} />
+    <Route path="/add-hr" element={<AddHr />} />
+    {/* Add more routes as needed */}
   </Routes>
   </BrowserRouter>
     </>

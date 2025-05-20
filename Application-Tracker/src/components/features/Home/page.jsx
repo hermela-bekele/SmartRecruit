@@ -13,6 +13,7 @@ import {
 import LoginModal from "../../auth/Login/page";
 import JobCard from "../JobCard";
 import JobDetailsModal from "../jobDetailsModal";
+import Footer from "../footer";
 
 export default function Home() {
   const [jobs, setJobs] = useState([]);
@@ -28,7 +29,7 @@ export default function Home() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch("src/data/jobs.json");
+        const response = await fetch("/data/jobs.json");
         const data = await response.json();
         setJobs(data);
       } catch (error) {
@@ -38,14 +39,21 @@ export default function Home() {
 
     fetchJobs();
   }, []);
-/* search filter effect */
+  /* search filter effect */
   useEffect(() => {
     const lowerQuery = searchQuery.toLowerCase();
 
-    const filtered = jobs.filter(job => {
-      const matchesSearch = job.title.toLowerCase().includes(lowerQuery) || job.company.toLowerCase().includes(lowerQuery) || job.description.toLowerCase().includes(lowerQuery);
-      const matchesLocation = selectedLocation ? job.location.toLowerCase() === selectedLocation.toLowerCase() : true;
-      const matchesCatagory = selectedCategory ? job.category.toLowerCase() === selectedCategory.toLowerCase() : true;
+    const filtered = jobs.filter((job) => {
+      const matchesSearch =
+        job.title.toLowerCase().includes(lowerQuery) ||
+        job.company.toLowerCase().includes(lowerQuery) ||
+        job.description.toLowerCase().includes(lowerQuery);
+      const matchesLocation = selectedLocation
+        ? job.location.toLowerCase() === selectedLocation.toLowerCase()
+        : true;
+      const matchesCatagory = selectedCategory
+        ? job.category.toLowerCase() === selectedCategory.toLowerCase()
+        : true;
 
       return matchesSearch && matchesLocation && matchesCatagory;
     });
@@ -56,14 +64,16 @@ export default function Home() {
   return (
     <div className="min-h-screen w-screen overflow-x-hidden bg-gradient-to-br from-blue-50 via-blue-50 to-white">
       {/* Header */}
-      <header className="w-full bg-white backdrop-blur-sm border-b border-blue-100 py-4 px-4 sticky top-0 z-50 shadow-sm">
+      <header className="w-full bg-gray-900 text-gray-300 backdrop-blur-sm border-b border-blue-100 py-4 px-4 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto max-w-6xl flex justify-between items-center">
           {/* Logo */}
           <a href="/" className="flex items-center">
             <div className="bg-blue-600 text-white font-bold rounded-lg p-2 mr-2">
               SM
             </div>
-            <span className="text-xl font-bold text-blue-800">Smart Recruit</span>
+            <span className="text-xl font-bold text-blue-800">
+              Smart Recruit
+            </span>
           </a>
 
           {/* Desktop Navigation */}
@@ -145,7 +155,7 @@ export default function Home() {
           <div className="bg-white backdrop-blur-lg border border-blue-200 rounded-xl p-6 shadow-lg">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
-              <input
+                <input
                   type="text"
                   placeholder="Job title or keyword"
                   className="w-full px-10 py-2 bg-white border border-blue-200 rounded-lg text-blue-900 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -154,15 +164,15 @@ export default function Home() {
                 />
                 <Search className="absolute left-3 top-2.5 h-5 w-5 text-blue-400" />
               </div>
- {/* location filter */}
+              {/* location filter */}
               <div className="relative">
-              <select 
+                <select
                   className="w-full px-3 py-2 text-blue-900 border border-blue-200 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
                 >
-                  <option value=""  selected className="text-blue-400">
-                    ALl Location
+                  <option value="" selected className="text-blue-400">
+                    All Location
                   </option>
                   <option value="remote" className="text-blue-900">
                     Remote
@@ -200,12 +210,12 @@ export default function Home() {
               {/* catagory filter */}
 
               <div className="relative">
-              <select 
+                <select
                   className="w-full px-3 py-2 text-blue-900 border border-blue-200 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  <option value=""  selected className="text-blue-400">
+                  <option value="" selected className="text-blue-400">
                     All Category
                   </option>
                   <option value="engineering" className="text-blue-900">
@@ -241,7 +251,7 @@ export default function Home() {
                 </div>
               </div>
 
-{/*               <div className="md:col-span-3">
+              {/*               <div className="md:col-span-3">
                 <button className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors shadow-md hover:shadow-lg">
                   Search Jobs
                 </button>
@@ -259,19 +269,23 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredJobs.length > 0 ? (
-                  filteredJobs.slice(0, Math.ceil(filteredJobs.length / 2)).map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  onApply={() => {
-                    setSelectedJob(job);
-                    setShowApplicationForm(false);
-                  }}
-                />
-              ))
+              filteredJobs
+                .slice(0, Math.ceil(filteredJobs.length / 2))
+                .map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onApply={() => {
+                      setSelectedJob(job);
+                      setShowApplicationForm(false);
+                    }}
+                  />
+                ))
             ) : (
               <div className="col-span-full text-center py-8">
-                <p className="text-blue-600 text-xl">No jobs found matching your criteria</p>
+                <p className="text-blue-600 text-xl">
+                  No jobs found matching your criteria
+                </p>
               </div>
             )}
           </div>
@@ -288,16 +302,21 @@ export default function Home() {
             Browse all available positions and find the perfect match for your
             skills and experience.
           </p>
-          <Link 
-  to="/all-jobs"
-  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium rounded-md transition-colors shadow-md hover:shadow-lg"
->
-  View All Jobs
-</Link>
+          <Link
+            to="/all-jobs"
+            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium rounded-md transition-colors shadow-md hover:shadow-lg"
+          >
+            View All Jobs
+          </Link>
         </div>
       </section>
+
+      <Footer />
+
       {/* Login Modal */}
-      {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} />}
+      {isLoginModalOpen && (
+        <LoginModal onClose={() => setIsLoginModalOpen(false)} />
+      )}
 
       {/* Job Details Modal */}
       {selectedJob && (
@@ -311,5 +330,3 @@ export default function Home() {
     </div>
   );
 }
-
-

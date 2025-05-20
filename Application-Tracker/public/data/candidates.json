@@ -2,11 +2,12 @@
     {
       "name": "Michael Chen",
       "email": "michael.c@example.com",
-      "position": "Senior Frontend Developer",
+      "position": "Frontend Developer",
       "jobId": "ENG-001",
       "date": "2023-08-14",
       "status": "under Review",
       "experience": "7 years",
+      "company": "DellTech",
       "location": "Austin, TX",
       "skills": ["Vue", "JavaScript", "Webpack"],
       "resume": "michael_chen_resume.pdf",
@@ -24,6 +25,7 @@
       "date": "2023-08-16",
       "status": "Interview",
       "experience": "4 years",
+      "company": "Salesforce",
       "location": "San Francisco, CA",
       "skills": ["React", "Node.js", "GraphQL"],
       "resume": "emma_wilson_resume.pdf",
@@ -41,6 +43,7 @@
       "date": "2023-08-13",
       "status": "Offer",
       "experience": "6 years",
+      "company": "Grubhub",
       "location": "Chicago, IL",
       "skills": ["Figma", "CSS", "Accessibility"],
       "resume": "alex_martinez_resume.pdf",
@@ -58,6 +61,7 @@
       "date": "2023-08-17",
       "status": "Interview",
       "experience": "5 years",
+      "company": "HubSpot",
       "location": "Boston, MA",
       "skills": ["AWS", "Docker", "Terraform"],
       "resume": "jordan_taylor_resume.pdf",
@@ -75,6 +79,7 @@
       "date": "2023-08-18",
       "status": "under Review",
       "experience": "3 years",
+      "company": "Amazon",
       "location": "Seattle, WA",
       "skills": ["React Native", "Swift", "Kotlin"],
       "resume": "sophia_kim_resume.pdf",
@@ -84,4 +89,4 @@
         { "date": "2023-08-18", "status": "Technical Interview" }
       ]
     }
-  ]
+]

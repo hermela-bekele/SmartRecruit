@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import JobCard from "../JobCard";
 import JobDetailsModal from "../jobDetailsModal";
+import Footer from "../footer";
 
 
 function JobsPage() {
@@ -25,7 +26,7 @@ function JobsPage() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch("src/data/jobs.json");
+        const response = await fetch("/data/jobs.json");
         const data = await response.json();
         setJobs(data);
         setFilteredJobs(data);
@@ -60,7 +61,7 @@ function JobsPage() {
   return (
     <div className="min-h-screen w-screen overflow-x-hidden bg-gradient-to-br from-blue-50 via-blue-50 to-white">
       {/* Header */}
-      <header className="w-full bg-white backdrop-blur-sm border-b border-blue-100 py-4 px-4 sticky top-0 z-50 shadow-sm">
+      <header className="w-full bg-gray-900 text-gray-300 backdrop-blur-sm border-b border-blue-100 py-4 px-4 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto max-w-6xl flex justify-between items-center">
           {/* Logo */}
           <a href="/" className="flex items-center">
@@ -192,6 +193,8 @@ function JobsPage() {
           </div>
         </div>
       </section>
+
+      <Footer />
 
       {/* Job Details Modal */}
       {selectedJob && (
