@@ -29,7 +29,7 @@ export default function Home() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch("/data/jobs.json");
+        const response = await fetch("src/data/jobs.json");
         const data = await response.json();
         setJobs(data);
       } catch (error) {

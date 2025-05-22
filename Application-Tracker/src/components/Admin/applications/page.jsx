@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Sidebar from "../../sidebar";
-import candidates from "../../../../public/data/candidates.json";
+import candidates from "../../../../src/data/candidates.json";
 import {
   Search,
   X,
