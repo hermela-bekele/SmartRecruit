@@ -26,10 +26,10 @@ function JobsPage() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch("src/data/jobs.json");
+      const response = await fetch("http://localhost:3000/jobs");
+      if (!response.ok) throw new Error("Failed to fetch jobs");
         const data = await response.json();
         setJobs(data);
-        setFilteredJobs(data);
       } catch (error) {
         console.error("Error fetching job data:", error);
       }

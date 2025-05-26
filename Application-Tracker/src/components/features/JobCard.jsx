@@ -1,6 +1,6 @@
 import { Calendar, MapPin } from "lucide-react";
 export default function JobCard({ job, onApply }) {
-    const formattedDate = new Date(job.postedDate).toLocaleDateString("en-US", {
+    const formattedDate = new Date(job.postingDate).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -23,8 +23,8 @@ export default function JobCard({ job, onApply }) {
           </div>
   
           <div className="mb-4">
-            <span className="inline-block bg-blue-100 text-blue-600 text-xs font-medium px-2.5 py-0.5 rounded">
-              {job.type}
+            <span className="inline-block bg-blue-100 text-blue-600 text-xs font-medium px-2.5 py-0.5 rounded ">
+              {job.employmentType}
             </span>
           </div>
   

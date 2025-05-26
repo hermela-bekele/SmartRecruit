@@ -29,7 +29,8 @@ export default function Home() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch("src/data/jobs.json");
+      const response = await fetch("http://localhost:3000/jobs");
+      if (!response.ok) throw new Error("Failed to fetch jobs");
         const data = await response.json();
         setJobs(data);
       } catch (error) {
@@ -46,13 +47,13 @@ export default function Home() {
     const filtered = jobs.filter((job) => {
       const matchesSearch =
         job.title.toLowerCase().includes(lowerQuery) ||
-        job.company.toLowerCase().includes(lowerQuery) ||
+        job.department.toLowerCase().includes(lowerQuery) ||
         job.description.toLowerCase().includes(lowerQuery);
       const matchesLocation = selectedLocation
         ? job.location.toLowerCase() === selectedLocation.toLowerCase()
         : true;
       const matchesCatagory = selectedCategory
-        ? job.category.toLowerCase() === selectedCategory.toLowerCase()
+        ? job.department.toLowerCase() === selectedCategory.toLowerCase()
         : true;
 
       return matchesSearch && matchesLocation && matchesCatagory;
