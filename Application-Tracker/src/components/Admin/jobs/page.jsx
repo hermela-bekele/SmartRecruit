@@ -15,6 +15,7 @@ import {
 
 function Jobs() {
   const [showModal, setShowModal] = useState(false);
+  const [editingJob, setEditingJob] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [jobs, setJobs] = useState([]);
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -27,7 +28,7 @@ function Jobs() {
 
   const API_URL = "http://localhost:3000/jobs";
 
-/* load jobs on component mount */
+  /* load jobs on component mount */
   useEffect(() => {
     fetchJobs();
   }, []);
@@ -95,7 +96,7 @@ function Jobs() {
         ? new Date(job.expirationDate).toISOString().split("T")[0]
         : "",
     });
-    setShowModal(true);
+    setEditingJob(job);
     setOpenDropdownId(null);
 
     try {
@@ -113,6 +114,43 @@ function Jobs() {
       console.error("Error updating job:", error);
     }
   };
+
+    // New handler for updating job
+const handleUpdateJob = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
+
+  try {
+    // Ensure ID is properly formatted
+    const response = await fetch(`${API_URL}/${editingJob.id}`, {
+      method: "PATCH", // Verify backend accepts PATCH
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...formData,
+        // Convert empty expiration date to null
+        expirationDate: formData.expirationDate || null,
+        // Ensure date formatting matches backend expectations
+        postingDate: new Date(formData.postingDate).toISOString(),
+      }),
+    });
+
+    const responseData = await response.json(); // Always parse first
+    
+    if (!response.ok) {
+      throw new Error(responseData.message || `HTTP ${response.status} Error`);
+    }
+    
+    await fetchJobs();
+    setEditingJob(null);
+  } catch (error) {
+    console.error("Update error:", {
+      error: error.message,
+      status: error.response?.status,
+      data: await error.response?.text(), // Get raw response
+    });
+    setErrors({ submit: error.message });
+  }
+};
 
   const handleDeleteJob = async (id) => {
     try {
@@ -379,7 +417,7 @@ function Jobs() {
         </div>
 
         {/* Jobs Table */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200/50 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200/50 relative">
           <table className="w-full">
             <thead className="bg-slate-50">
               <tr>
@@ -692,6 +730,177 @@ function Jobs() {
                       className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >
                       Create Position
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+                {/* Edit Job Modal (new code) */}
+        {editingJob && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl">
+              <div className="p-8">
+                <div className="flex justify-between items-start mb-8">
+                  <h3 className="text-2xl font-bold text-slate-900">
+                    Edit Job Position
+                  </h3>
+                  <button
+                    onClick={() => setEditingJob(null)}
+                    className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleUpdateJob} className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Left Column */}
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2 text-left">
+                          Job Title *
+                        </label>
+                        <input
+                          name="title"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                        {errors.title && (
+                          <p className="text-red-500 text-sm mt-2">
+                            {errors.title}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2 text-left">
+                          Department *
+                        </label>
+                        <input
+                          name="department"
+                          value={formData.department}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                        {errors.department && (
+                          <p className="text-red-500 text-sm mt-2">
+                            {errors.department}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2 text-left">
+                          Location *
+                        </label>
+                        <input
+                          name="location"
+                          value={formData.location}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                        {errors.location && (
+                          <p className="text-red-500 text-sm mt-2">
+                            {errors.location}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right Column */}
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2 text-left">
+                          Employment Type *
+                        </label>
+                        <select
+                          name="employmentType"
+                          value={formData.employmentType}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        >
+                          <option value="">Select type</option>
+                          <option value="Full-time">Full-time</option>
+                          <option value="Part-time">Part-time</option>
+                          <option value="Contract">Contract</option>
+                          <option value="Freelance">Freelance</option>
+                        </select>
+                        {errors.employmentType && (
+                          <p className="text-red-500 text-sm mt-2">
+                            {errors.employmentType}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2 text-left">
+                          Posting Date *
+                        </label>
+                        <input
+                          type="date"
+                          name="postingDate"
+                          value={formData.postingDate}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                        {errors.postingDate && (
+                          <p className="text-red-500 text-sm mt-2">
+                            {errors.postingDate}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2 text-left">
+                          Expiration Date
+                        </label>
+                        <input
+                          type="date"
+                          name="expirationDate"
+                          value={formData.expirationDate}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2 text-left">
+                      Job Description
+                    </label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    />
+                  </div>
+
+                  {errors.submit && (
+                    <div className="text-red-500 text-sm mt-4">
+                      Error: {errors.submit}
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-4 pt-6">
+                    <button
+                      type="button"
+                      onClick={() => setEditingJob(null)}
+                      className="px-6 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      Save Changes
                     </button>
                   </div>
                 </form>
