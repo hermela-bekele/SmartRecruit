@@ -112,11 +112,9 @@ function Dashboard() {
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
       <div 
-        className="flex-1 min-h-screen p-4 md:p-6 lg:p-10 transition-all duration-300"
-        style={{
-          marginLeft: !isMobile && !isCollapsed ? '288px' : 
-                     !isMobile && isCollapsed ? '80px' : '0'
-        }}
+        className={`flex-1 min-h-screen p-4 md:p-6 lg:p-10 transition-all duration-300 ${
+          !isMobile ? (isCollapsed ? 'md:ml-20' : 'md:ml-72') : ''
+        }`}
       >
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6  gap-4">

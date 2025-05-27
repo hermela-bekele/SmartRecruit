@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Job {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: number;
 
   @Column()
@@ -13,6 +13,9 @@ export class Job {
 
   @Column()
   location: string;
+
+  @Column({ nullable: false })
+  company: string;
 
   @Column()
   employmentType: string;

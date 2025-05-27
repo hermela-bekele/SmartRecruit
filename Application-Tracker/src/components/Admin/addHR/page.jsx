@@ -1,5 +1,5 @@
 import Sidebar from "../../sidebar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const AddHrPage = () => {
   const [hrDetails, setHrDetails] = useState({
@@ -15,6 +15,22 @@ const AddHrPage = () => {
       manageSettings: false
     }
   });
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth < 768;
+      setIsMobile(isMobile);
+      if (isMobile) setIsCollapsed(true);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -37,9 +53,14 @@ const AddHrPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50/5">
-      <Sidebar />
-      <div className="ml-42 flex-1 min-h-screen p-10">
+    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50/5">
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+      <div 
+        className={`flex-1 min-h-screen p-4 md:p-6 lg:p-10 transition-all duration-300 ${
+          !isMobile ? (isCollapsed ? 'md:ml-20' : 'md:ml-72') : ''
+        }`}
+      >
         <div className="bg-white rounded-xl shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-6 text-left">Add New HR Account</h1>
           

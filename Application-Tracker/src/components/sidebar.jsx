@@ -1,12 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, LogOut, User } from "lucide-react";
-import { useState } from "react";
 
-const Sidebar = () => {
+const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleLogout = () => {
     // Add any logout logic here (clear tokens, etc)

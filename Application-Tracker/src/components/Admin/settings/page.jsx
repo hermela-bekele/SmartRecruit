@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BellIcon,
   ShieldCheckIcon,
@@ -10,6 +10,8 @@ import NotificationsTab from "./notificationTab";
 import SecurityTab from "./securityTab";
 
 export default function SettingsPage() {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -18,6 +20,19 @@ export default function SettingsPage() {
     { name: "Notification", id: "notification", icon: BellIcon },
     { name: "Security", id: "security", icon: ShieldCheckIcon },
   ];
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth < 768;
+      setIsMobile(isMobile);
+      if (isMobile) setIsCollapsed(true);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleSave = () => {
     setIsSaving(true);
@@ -193,10 +208,14 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50/5">
-      <Sidebar />
+    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50/5">
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      <div className="ml-42 flex-1 min-h-screen p-10">
+      <div 
+        className={`flex-1 min-h-screen p-4 md:p-6 lg:p-10 transition-all duration-300 ${
+          !isMobile ? (isCollapsed ? 'md:ml-20' : 'md:ml-72') : ''
+        }`}
+      >
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left">

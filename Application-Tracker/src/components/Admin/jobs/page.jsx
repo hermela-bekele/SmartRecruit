@@ -19,6 +19,8 @@ function Jobs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [jobs, setJobs] = useState([]);
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [filters, setFilters] = useState({
     department: "",
     status: "",
@@ -27,6 +29,19 @@ function Jobs() {
   });
 
   const API_URL = "http://localhost:3000/jobs";
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth < 768;
+      setIsMobile(isMobile);
+      if (isMobile) setIsCollapsed(true);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   /* load jobs on component mount */
   useEffect(() => {
@@ -89,6 +104,7 @@ function Jobs() {
       title: job.title,
       department: job.department,
       location: job.location,
+      company: job.company,
       employmentType: job.employmentType,
       description: job.description,
       postingDate: new Date(job.postingDate).toISOString().split("T")[0],
@@ -115,42 +131,44 @@ function Jobs() {
     }
   };
 
-    // New handler for updating job
-const handleUpdateJob = async (e) => {
-  e.preventDefault();
-  if (!validateForm()) return;
+  // New handler for updating job
+  const handleUpdateJob = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
-  try {
-    // Ensure ID is properly formatted
-    const response = await fetch(`${API_URL}/${editingJob.id}`, {
-      method: "PATCH", // Verify backend accepts PATCH
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...formData,
-        // Convert empty expiration date to null
-        expirationDate: formData.expirationDate || null,
-        // Ensure date formatting matches backend expectations
-        postingDate: new Date(formData.postingDate).toISOString(),
-      }),
-    });
+    try {
+      // Ensure ID is properly formatted
+      const response = await fetch(`${API_URL}/${editingJob.id}`, {
+        method: "PATCH", // Verify backend accepts PATCH
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          // Convert empty expiration date to null
+          expirationDate: formData.expirationDate || null,
+          // Ensure date formatting matches backend expectations
+          postingDate: new Date(formData.postingDate).toISOString(),
+        }),
+      });
 
-    const responseData = await response.json(); // Always parse first
-    
-    if (!response.ok) {
-      throw new Error(responseData.message || `HTTP ${response.status} Error`);
+      const responseData = await response.json(); // Always parse first
+
+      if (!response.ok) {
+        throw new Error(
+          responseData.message || `HTTP ${response.status} Error`
+        );
+      }
+
+      await fetchJobs();
+      setEditingJob(null);
+    } catch (error) {
+      console.error("Update error:", {
+        error: error.message,
+        status: error.response?.status,
+        data: await error.response?.text(), // Get raw response
+      });
+      setErrors({ submit: error.message });
     }
-    
-    await fetchJobs();
-    setEditingJob(null);
-  } catch (error) {
-    console.error("Update error:", {
-      error: error.message,
-      status: error.response?.status,
-      data: await error.response?.text(), // Get raw response
-    });
-    setErrors({ submit: error.message });
-  }
-};
+  };
 
   const handleDeleteJob = async (id) => {
     try {
@@ -233,6 +251,7 @@ const handleUpdateJob = async (e) => {
     title: "",
     department: "",
     location: "",
+    company: "",
     employmentType: "",
     description: "",
     postingDate: "",
@@ -253,6 +272,7 @@ const handleUpdateJob = async (e) => {
     if (!formData.department.trim())
       newErrors.department = "Department is required";
     if (!formData.location.trim()) newErrors.location = "Location is required";
+    if (!formData.company.trim()) newErrors.company = "Company is required";
     if (!formData.employmentType.trim())
       newErrors.employmentType = "Employment type is required";
     if (!formData.postingDate)
@@ -293,6 +313,7 @@ const handleUpdateJob = async (e) => {
         title: "",
         department: "",
         location: "",
+        company: "",
         employmentType: "",
         description: "",
         postingDate: "",
@@ -307,10 +328,14 @@ const handleUpdateJob = async (e) => {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50/5">
-      <Sidebar />
+    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50/5">
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      <div className="ml-42 flex-1 min-h-screen p-8">
+      <div 
+        className={`flex-1 min-h-screen p-4 md:p-6 lg:p-10 transition-all duration-300 ${
+          !isMobile ? (isCollapsed ? 'md:ml-20' : 'md:ml-72') : ''
+        }`}
+      >
         {/* Header Section */}
         <div className="mb-8 flex justify-between items-start">
           <div>
@@ -425,6 +450,7 @@ const handleUpdateJob = async (e) => {
                   "Job Title",
                   "Department",
                   "Location",
+                  "company",
                   "Posted",
                   "Applications",
                   "Status",
@@ -470,6 +496,11 @@ const handleUpdateJob = async (e) => {
                     <div className="flex items-center gap-2 text-slate-600">
                       <MapPin size={16} />
                       {job.location}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      {job.company}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-slate-600">
@@ -638,6 +669,22 @@ const handleUpdateJob = async (e) => {
                           </p>
                         )}
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2 text-left">
+                          Company *
+                        </label>
+                        <input
+                          name="company"
+                          value={formData.company}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                        {errors.company && (
+                          <p className="text-red-500 text-sm mt-2">
+                            {errors.company}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Right Column */}
@@ -738,7 +785,7 @@ const handleUpdateJob = async (e) => {
           </div>
         )}
 
-                {/* Edit Job Modal (new code) */}
+        {/* Edit Job Modal (new code) */}
         {editingJob && (
           <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl">
@@ -806,6 +853,22 @@ const handleUpdateJob = async (e) => {
                         {errors.location && (
                           <p className="text-red-500 text-sm mt-2">
                             {errors.location}
+                          </p>
+                        )}
+                      </div>
+                                                                <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2 text-left">
+                          Company *
+                        </label>
+                        <input
+                          name="company"
+                          value={formData.company}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                        {errors.company && (
+                          <p className="text-red-500 text-sm mt-2">
+                            {errors.company}
                           </p>
                         )}
                       </div>

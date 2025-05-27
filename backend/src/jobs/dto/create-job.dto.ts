@@ -11,6 +11,9 @@ export class CreateJobDto {
   location: string;
 
   @IsNotEmpty()
+  company?: string;
+
+  @IsNotEmpty()
   employmentType: string;
 
   @IsNotEmpty()
