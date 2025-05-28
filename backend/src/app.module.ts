@@ -5,13 +5,17 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import databaseConfig from './config/database.config';
 import { validateEnv } from './config/env.validation';
 import { JobsModule } from './jobs/jobs.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
       validate: validateEnv,
       load: [databaseConfig],
+      cache: true,
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -19,6 +23,8 @@ import { JobsModule } from './jobs/jobs.module';
         config.getOrThrow<TypeOrmModuleOptions>('database'),
     }),
     JobsModule,
+    AuthModule,
+    UsersModule,
   ],
 })
 export class AppModule {}

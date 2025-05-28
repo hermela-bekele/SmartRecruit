@@ -3,10 +3,15 @@ import {
   validateSync,
   ValidationError,
   IsNotEmpty,
+  IsString,
   IsNumberString,
 } from 'class-validator';
 
 class EnvironmentVariables {
+  @IsNotEmpty()
+  @IsString()
+  JWT_SECRET: string;
+
   @IsNotEmpty()
   DB_HOST!: string;
 
