@@ -12,7 +12,6 @@ import JobCard from "../JobCard";
 import JobDetailsModal from "../jobDetailsModal";
 import Footer from "../footer";
 
-
 function JobsPage() {
   const [jobs, setJobs] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,6 +21,10 @@ function JobsPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobsPerPage = 6;
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -56,7 +59,15 @@ function JobsPage() {
     });
 
     setFilteredJobs(filtered);
+    // Reset to first page when filters change
+    setCurrentPage(1);
   }, [jobs, searchQuery, selectedLocation, selectedCategory]);
+
+  // Pagination calculations
+  const indexOfLastJob = currentPage * jobsPerPage;
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
 
   return (
     <div className="min-h-screen w-screen overflow-x-hidden bg-gradient-to-br from-blue-50 via-blue-50 to-white">
@@ -124,7 +135,7 @@ function JobsPage() {
         <div className="container mx-auto max-w-6xl">
           <div className="bg-white backdrop-blur-lg border border-blue-200 rounded-xl p-6 shadow-lg mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Search and Filter Inputs (Same as Home) */}
+              {/* Search and Filter Inputs */}
               <div className="relative">
                 <input
                   type="text"
@@ -150,7 +161,6 @@ function JobsPage() {
                   <option value="New York, NY">New York, NY</option>
                   <option value="Seattle, WA">Seattle, WA</option>
                 </select>
-                
               </div>
 
               {/* Category Filter */}
@@ -167,15 +177,14 @@ function JobsPage() {
                   <option value="Product">Product</option>
                   <option value="Sales">Sales</option>
                 </select>
-                
               </div>
             </div>
           </div>
 
           {/* Job Listings */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredJobs.length > 0 ? (
-              filteredJobs.map((job) => (
+            {currentJobs.length > 0 ? (
+              currentJobs.map((job) => (
                 <JobCard
                   key={job.id}
                   job={job}
@@ -191,6 +200,31 @@ function JobsPage() {
               </div>
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {filteredJobs.length > jobsPerPage && (
+            <div className="flex justify-center items-center mt-12 gap-4">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+              >
+                Previous
+              </button>
+              
+              <span className="text-blue-600 font-medium">
+                Page {currentPage} of {totalPages}
+              </span>
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
