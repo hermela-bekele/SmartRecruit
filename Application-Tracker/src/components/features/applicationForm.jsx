@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { ArrowLeft, Upload } from "lucide-react";
+import { submitApplication } from "../../api/applications";
 
 export default function ApplicationForm({ job, onBack, onSubmitSuccess }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [resume, setResume] = useState(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [errors, setErrors] = useState({});
@@ -18,29 +20,48 @@ export default function ApplicationForm({ job, onBack, onSubmitSuccess }) {
     if (!email.trim()) newErrors.email = "Email is required";
     else if (!/^\S+@\S+\.\S+$/.test(email))
       newErrors.email = "Email is invalid";
+    if (phone && !/^(\+\d{1,3})?(\d{3})?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(phone))
+      newErrors.phone = "Invalid phone number";
     if (!resume) newErrors.resume = "Resume is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const applicationData = {
+        name,
+        email,
+        phone,
+        coverLetter,
+        position: job.title,
+        company: job.company
+      };
+
+      await submitApplication(applicationData, resume);
+
       setIsSuccess(true);
 
-      // Close modal after showing success message
       setTimeout(() => {
         onSubmitSuccess();
       }, 2000);
-    }, 1500);
+    } catch (error) {
+      console.error("Submission failed:", error);
+      setErrors({
+        submit:
+          error.response?.data?.message ||
+          "Failed to submit application. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDrag = (e) => {
@@ -155,6 +176,24 @@ export default function ApplicationForm({ job, onBack, onSubmitSuccess }) {
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
             )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="phone"
+              className="block text-sm font-medium text-blue-800 mb-1"
+            >
+              Phone Number{" "}
+              <span className="text-blue-600 text-sm">(Optional)</span>
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900"
+              placeholder="(123) 456-7890"
+            />
           </div>
 
           <div>

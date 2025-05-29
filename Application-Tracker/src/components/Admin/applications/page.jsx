@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Sidebar from "../../sidebar";
-import candidates from "../../../../src/data/candidates.json";
 import {
   Search,
   X,
@@ -12,21 +11,22 @@ import {
   Briefcase,
   FileText,
 } from "react-feather";
+import { 
+  fetchApplications, 
+  updateApplicationStatus,
+  deleteApplication 
+} from "../../../api/applications";
+import EmailModal from "./EmailModal";
 
 function Applications() {
+  const [candidatesData, setCandidatesData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedPosition, setSelectedPosition] = useState("");
   const [openDropdownId, setOpenDropdownId] = useState(null);
-const [candidatesData, setCandidatesData] = useState(() =>
-  candidates.map((c, index) => ({ 
-    ...c, 
-    id: index + 1,
-    company: c.company 
-  }))
-);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [selectedStatusType, setSelectedStatusType] = useState("");
@@ -39,7 +39,7 @@ const [candidatesData, setCandidatesData] = useState(() =>
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-    // Load templates from localStorage
+  // Load templates from localStorage
   useEffect(() => {
     const savedTemplates = JSON.parse(localStorage.getItem('emailTemplates')) || {
       Received: `Dear ((candidate_name)),\n\nThank you for applying for the ((position)) role at ((company_name)). We have received your application and will review it shortly.\n\nBest regards,\n((company_name)) Recruitment Team`,
@@ -50,10 +50,26 @@ const [candidatesData, setCandidatesData] = useState(() =>
     setEmailTemplates(savedTemplates);
   }, []);
 
+  // Load applications from API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchApplications();
+        setCandidatesData(data);
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
   // Get unique statuses and positions for filter options
   const statusOptions = [...new Set(candidatesData.map((c) => c.status))];
   const positionOptions = [...new Set(candidatesData.map((c) => c.position))];
 
+  // Filter candidates based on search and filters
   const filteredCandidates = candidatesData.filter((candidate) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
@@ -73,52 +89,17 @@ const [candidatesData, setCandidatesData] = useState(() =>
     return matchesSearch && matchesStatus && matchesPosition;
   });
 
+  // Close dropdown when clicking outside
   useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (!e.target.closest('.dropdown-container')) {
-      setOpenDropdownId(null);
-    }
-  };
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.dropdown-container')) {
+        setOpenDropdownId(null);
+      }
+    };
 
-  document.addEventListener('click', handleClickOutside);
-  return () => document.removeEventListener('click', handleClickOutside);
-}, []);
-
-  const openModal = (candidate) => {
-    setSelectedCandidate(candidate);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedCandidate(null);
-  };
-
-  /* add status update action  */
-
-  const handleStatusChange = (candidateId, newStatus) => {
-    const candidate = candidatesData.find(c => c.id === candidateId);
-    setSelectedCandidate(candidate);
-    setSelectedStatusType(newStatus);
-    setSelectedTemplate(emailTemplates[newStatus]);
-    setShowEmailModal(true);
-  };
-
-    const sendEmail = (content, subject) => {
-    console.log('Email sent:', {
-      to: selectedCandidate.email,
-      subject,
-      content
-    });
-    // Update candidate status after sending email
-    setCandidatesData(prev => 
-      prev.map(candidate => 
-        candidate.id === selectedCandidate.id
-          ? { ...candidate, status: selectedStatusType }
-          : candidate
-      )
-    );
-  };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -132,6 +113,70 @@ const [candidatesData, setCandidatesData] = useState(() =>
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const openModal = (candidate) => {
+    setSelectedCandidate(candidate);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedCandidate(null);
+  };
+
+  const handleStatusChange = async (candidateId, newStatus) => {
+    try {
+      const candidate = candidatesData.find(c => c.id === candidateId);
+      setSelectedCandidate(candidate);
+      setSelectedStatusType(newStatus);
+      setSelectedTemplate(emailTemplates[newStatus]);
+      setShowEmailModal(true);
+    } catch (error) {
+      console.error('Error preparing status change:', error);
+    }
+  };
+
+  const sendEmail = async (content, subject) => {
+    try {
+      console.log('Email sent:', {
+        to: selectedCandidate.email,
+        subject,
+        content
+      });
+      
+      // Update candidate status after sending email
+      await updateApplicationStatus(selectedCandidate.id, selectedStatusType);
+      
+      setCandidatesData(prev => 
+        prev.map(candidate => 
+          candidate.id === selectedCandidate.id
+            ? { ...candidate, status: selectedStatusType }
+            : candidate
+        )
+      );
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  };
+
+  const handleDelete = async (candidateId) => {
+    try {
+      await deleteApplication(candidateId);
+      setCandidatesData(prev => 
+        prev.filter(candidate => candidate.id !== candidateId)
+      );
+    } catch (error) {
+      console.error('Error deleting application:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50/5">
@@ -155,7 +200,7 @@ const [candidatesData, setCandidatesData] = useState(() =>
               <div className="flex items-center gap-2 bg-green-100 px-3 py-1 rounded-full">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span className="text-green-700 text-sm">
-                  25 total applications
+                  {candidatesData.length} total applications
                 </span>
               </div>
             </div>
@@ -167,7 +212,7 @@ const [candidatesData, setCandidatesData] = useState(() =>
         </div>
 
         {/* Filters Section */}
-        <div className="mb-8 flex gap-4 items-center">
+        <div className="mb-8 flex gap-4 items-center flex-wrap">
           {/* Search Bar */}
           <div className="relative flex-1 max-w-xl">
             <input
@@ -306,73 +351,77 @@ const [candidatesData, setCandidatesData] = useState(() =>
                       <FileText size={16} /> View
                     </button>
                   </td>
-                  <td className="px-6 py-4">
-                    <td className="px-6 py-4 relative">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenDropdownId(
-                            openDropdownId === candidate.id
-                              ? null
-                              : candidate.id
-                          );
-                        }}
-          className="text-purple-600 hover:text-purple-800 p-2 rounded-lg hover:bg-slate-100"
-        >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"
-                          />
-                        </svg>
-                      </button>
+                  <td className="px-6 py-4 relative dropdown-container">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenDropdownId(
+                          openDropdownId === candidate.id
+                            ? null
+                            : candidate.id
+                        );
+                      }}
+                      className="text-purple-600 hover:text-purple-800 p-2 rounded-lg hover:bg-slate-100"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"
+                        />
+                      </svg>
+                    </button>
 
-                      {openDropdownId === candidate.id && (
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-200 z-10">
-                          <div className="p-2 space-y-1">
-                            <button
-                              onClick={() =>
-                                handleStatusChange(candidate.id, "Received")
-                              }
-                              className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
-                            >
-                              Received
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleStatusChange(candidate.id, "Interview")
-                              }
-                              className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
-                            >
-                              Interview
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleStatusChange(candidate.id, "Offer")
-                              }
-                              className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
-                            >
-                              Offer
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleStatusChange(candidate.id, "Reject")
-                              }
-                              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-md"
-                            >
-                              Reject
-                            </button>
-                          </div>
+                    {openDropdownId === candidate.id && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-200 z-10">
+                        <div className="p-2 space-y-1">
+                          <button
+                            onClick={() =>
+                              handleStatusChange(candidate.id, "Received")
+                            }
+                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
+                          >
+                            Received
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleStatusChange(candidate.id, "Interview")
+                            }
+                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
+                          >
+                            Interview
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleStatusChange(candidate.id, "Offer")
+                            }
+                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
+                          >
+                            Offer
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleStatusChange(candidate.id, "Reject")
+                            }
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-md"
+                          >
+                            Reject
+                          </button>
+                          <button
+                            onClick={() => handleDelete(candidate.id)}
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-md"
+                          >
+                            Delete
+                          </button>
                         </div>
-                      )}
-                    </td>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -380,6 +429,7 @@ const [candidatesData, setCandidatesData] = useState(() =>
           </table>
         </div>
 
+        {/* Email Modal */}
         <EmailModal
           isOpen={showEmailModal}
           onClose={() => setShowEmailModal(false)}
@@ -390,21 +440,21 @@ const [candidatesData, setCandidatesData] = useState(() =>
         />
 
         {/* Candidate Details Modal */}
-        {isModalOpen && (
+        {isModalOpen && selectedCandidate && (
           <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-xl">
               <div className="p-8">
                 <div className="flex justify-between items-start mb-8">
                   <div>
                     <h3 className="text-2xl font-bold text-slate-900 mb-2">
-                      {selectedCandidate?.name}
+                      {selectedCandidate.name}
                     </h3>
                     <div className="flex items-center gap-3">
                       <span className="text-slate-600 flex items-center gap-1">
-                        <Briefcase size={16} /> {selectedCandidate?.position}
+                        <Briefcase size={16} /> {selectedCandidate.position}
                       </span>
                       <span className="text-slate-600 flex items-center gap-1">
-                        <MapPin size={16} /> {selectedCandidate?.company}
+                        <MapPin size={16} /> {selectedCandidate.company}
                       </span>
                     </div>
                   </div>
@@ -427,13 +477,13 @@ const [candidatesData, setCandidatesData] = useState(() =>
                         <div>
                           <p className="text-sm text-slate-500">Email</p>
                           <p className="text-slate-900">
-                            {selectedCandidate?.email}
+                            {selectedCandidate.email}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-slate-500">Phone</p>
                           <p className="text-slate-900">
-                            {selectedCandidate?.phone || "N/A"}
+                            {selectedCandidate.phone || "N/A"}
                           </p>
                         </div>
                       </div>
@@ -444,7 +494,7 @@ const [candidatesData, setCandidatesData] = useState(() =>
                         Skills & Experience
                       </h4>
                       <div className="flex flex-wrap gap-2">
-                        {selectedCandidate?.skills?.map((skill, index) => (
+                        {selectedCandidate.skills?.map((skill, index) => (
                           <span
                             key={index}
                             className="px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-full text-sm"
@@ -463,7 +513,7 @@ const [candidatesData, setCandidatesData] = useState(() =>
                         Application Timeline
                       </h4>
                       <div className="space-y-4">
-                        {selectedCandidate?.timeline?.map((event, index) => (
+                        {selectedCandidate.timeline?.map((event, index) => (
                           <div key={index} className="flex items-start gap-4">
                             <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
                             <div>
@@ -483,10 +533,15 @@ const [candidatesData, setCandidatesData] = useState(() =>
                       <h4 className="text-lg font-semibold text-slate-900 mb-4">
                         Documents
                       </h4>
-                      <button className="text-purple-600 hover:text-purple-800 flex items-center gap-2">
+                      <a 
+                        href={selectedCandidate.resumePath} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-purple-600 hover:text-purple-800 flex items-center gap-2"
+                      >
                         <DownloadCloud size={18} />
-                        {selectedCandidate?.resume}
-                      </button>
+                        Download Resume
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -501,7 +556,7 @@ const [candidatesData, setCandidatesData] = useState(() =>
             <span className="text-sm text-slate-600">
               {filteredCandidates.length === 0
                 ? "No applications found"
-                : `Showing ${filteredCandidates.length} of ${candidates.length} candidates`}
+                : `Showing ${filteredCandidates.length} of ${candidatesData.length} candidates`}
             </span>
             <div className="flex gap-2">
               <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-600">
@@ -509,84 +564,6 @@ const [candidatesData, setCandidatesData] = useState(() =>
               </button>
               <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-600">
                 Next
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EmailModal({ isOpen, onClose, candidate, template, status, onSend }) {
-  const [emailContent, setEmailContent] = useState("");
-  const [subject, setSubject] = useState("");
-
-  useEffect(() => {
-    if (isOpen && template && candidate) {
-      const populatedContent = template
-      .replace(/\(\(candidate_name\)\)/g, candidate.name)
-      .replace(/\(\(position\)\)/g, candidate.position)
-      .replace(/\(\(company_name\)\)/g, candidate.company); 
-
-      setEmailContent(populatedContent);
-      
-      const subjects = {
-      Received: `Application Received Confirmation - ${candidate.company}`,
-      Interview: `${candidate.company} Interview Invitation`,
-      Reject: `Application Update from ${candidate.company}`,
-      Offer: `${candidate.company} Job Offer`
-      };
-      setSubject(subjects[status] || "Important Update Regarding Your Application");
-    }
-  }, [isOpen, template, candidate, status]);
-
-  return (
-    <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 ${isOpen ? 'block' : 'hidden'}`}>
-      <div className="bg-white rounded-2xl w-full max-w-3xl shadow-xl">
-        <div className="p-8">
-          <div className="flex justify-between items-start mb-6">
-            <h3 className="text-2xl font-bold text-slate-900">
-              Send {status} Email to {candidate?.name}
-            </h3>
-            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100">
-              <X size={24} />
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Subject</label>
-              <input
-                type="text"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Email Content</label>
-              <textarea
-                value={emailContent}
-                onChange={(e) => setEmailContent(e.target.value)}
-                rows={12}
-                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-sm"
-              />
-            </div>
-
-            <div className="flex justify-end gap-4 pt-6">
-              <button onClick={onClose} className="px-6 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">
-                Cancel
-              </button>
-              <button 
-                onClick={() => {
-                  onSend(emailContent, subject);
-                  onClose();
-                }}
-                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                Send Email
               </button>
             </div>
           </div>

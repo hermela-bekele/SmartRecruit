@@ -7,6 +7,7 @@ import { validateEnv } from './config/env.validation';
 import { JobsModule } from './jobs/jobs.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { ApplicationsModule } from './applications/applications.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UsersModule } from './users/users.module';
         config.getOrThrow<TypeOrmModuleOptions>('database'),
     }),
     JobsModule,
+    ApplicationsModule,
     AuthModule,
     UsersModule,
   ],
