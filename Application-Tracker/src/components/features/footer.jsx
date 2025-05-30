@@ -7,9 +7,9 @@ function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">For Candidates & Employers</h3>
             <ul className="space-y-2">
-              <li><a href="/jobs" className="hover:text-blue-400 transition-colors">Jobs</a></li>
-              <li><a href="/companies" className="hover:text-blue-400 transition-colors">Companies</a></li>
-              <li><a href="/events" className="hover:text-blue-400 transition-colors">Events</a></li>
+              <li className="hover:text-blue-400 transition-colors">Jobs</li>
+              <li className="hover:text-blue-400 transition-colors">Companies</li>
+              <li className="hover:text-blue-400 transition-colors">Events</li>
             </ul>
           </div>
 
@@ -17,8 +17,8 @@ function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">About</h3>
             <ul className="space-y-2">
-              <li><a href="/about" className="hover:text-blue-400 transition-colors">Know SmartRecruit</a></li>
-              <li><a href="/partners" className="hover:text-blue-400 transition-colors">Project Partners</a></li>
+              <li className="hover:text-blue-400 transition-colors">Know SmartRecruit</li>
+              <li className="hover:text-blue-400 transition-colors">Project Partners</li>
             </ul>
           </div>
 
@@ -28,8 +28,8 @@ function Footer() {
             <ul className="space-y-2">
               <li><a href="tel:+251966753435" className="hover:text-blue-400 transition-colors">+251 96 675 3435</a></li>
               <li><a href="tel:+251978043198" className="hover:text-blue-400 transition-colors">+251 97 804 3198</a></li>
-              <li><a href="mailto:info@dereja.com" className="hover:text-blue-400 transition-colors">info@dereja.com</a></li>
-              <li><a href="mailto:candidates@dereja.com" className="hover:text-blue-400 transition-colors">candidates@dereja.com</a></li>
+              <li><a href="mailto:info@dereja.com" className="hover:text-blue-400 transition-colors">info@smartrecruit.com</a></li>
+              <li><a href="mailto:candidates@dereja.com" className="hover:text-blue-400 transition-colors">candidates@smartrecruit.com</a></li>
             </ul>
           </div>
 

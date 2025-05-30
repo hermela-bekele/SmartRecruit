@@ -43,8 +43,8 @@ function Jobs() {
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   /* load jobs on component mount */
@@ -328,9 +328,9 @@ function Jobs() {
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50/5">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      <div 
+      <div
         className={`flex-1 min-h-screen p-4 md:p-6 lg:p-10 transition-all duration-300 ${
-          !isMobile ? (isCollapsed ? 'md:ml-20' : 'md:ml-72') : ''
+          !isMobile ? (isCollapsed ? "md:ml-20" : "md:ml-72") : ""
         }`}
       >
         {/* Header Section */}
@@ -512,7 +512,9 @@ function Jobs() {
                         <span className="font-medium text-slate-900">
                           {job.applications}
                         </span>
-                        <span className="text-slate-500 text-sm">applicants</span>
+                        <span className="text-slate-500 text-sm">
+                          applicants
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -622,10 +624,10 @@ function Jobs() {
               </span>{" "}
               of <span className="font-medium">{filteredJobs.length}</span> jobs
             </div>
-            
+
             <div className="flex gap-2">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className={`p-2 rounded-lg ${
                   currentPage === 1
@@ -633,15 +635,28 @@ function Jobs() {
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                <ChevronLeft size={20} />
+                Previous
               </button>
-              
-              <span className="px-3 py-1 text-sm font-medium text-slate-700">
-                Page {currentPage} of {totalPages}
-              </span>
-              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`p-2 w-10 h-10 flex items-center justify-center rounded-lg ${
+                      currentPage === page
+                        ? "bg-purple-100 text-purple-600"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={currentPage === totalPages}
                 className={`p-2 rounded-lg ${
                   currentPage === totalPages
@@ -649,7 +664,7 @@ function Jobs() {
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                <ChevronRight size={20} />
+                Next
               </button>
             </div>
           </div>

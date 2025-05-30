@@ -38,6 +38,10 @@ function Applications() {
   });
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [candidatesPerPage] = useState(5);
 
   // Load templates from localStorage
   useEffect(() => {
@@ -65,6 +69,11 @@ function Applications() {
     loadData();
   }, []);
 
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedStatus, selectedPosition]);
+
   // Get unique statuses and positions for filter options
   const statusOptions = [...new Set(candidatesData.map((c) => c.status))];
   const positionOptions = [...new Set(candidatesData.map((c) => c.position))];
@@ -88,6 +97,15 @@ function Applications() {
 
     return matchesSearch && matchesStatus && matchesPosition;
   });
+
+  // Calculate pagination indexes
+  const indexOfLastCandidate = currentPage * candidatesPerPage;
+  const indexOfFirstCandidate = indexOfLastCandidate - candidatesPerPage;
+  const currentCandidates = filteredCandidates.slice(
+    indexOfFirstCandidate,
+    indexOfLastCandidate
+  );
+  const totalPages = Math.ceil(filteredCandidates.length / candidatesPerPage);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -292,7 +310,7 @@ function Applications() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredCandidates.map((candidate) => (
+              {currentCandidates.map((candidate) => (
                 <tr
                   key={candidate.id}
                   className="hover:bg-slate-50/50 transition-colors"
@@ -556,13 +574,49 @@ function Applications() {
             <span className="text-sm text-slate-600">
               {filteredCandidates.length === 0
                 ? "No applications found"
-                : `Showing ${filteredCandidates.length} of ${candidatesData.length} candidates`}
+                : `Showing ${indexOfFirstCandidate + 1} to ${Math.min(
+                    indexOfLastCandidate,
+                    filteredCandidates.length
+                  )} of ${filteredCandidates.length} candidates`}
             </span>
+            
             <div className="flex gap-2">
-              <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-600">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-lg ${
+                  currentPage === 1
+                    ? "text-slate-300 cursor-not-allowed"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
                 Previous
               </button>
-              <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-600">
+              
+              {/* Page numbers */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`p-2 w-10 h-10 flex items-center justify-center rounded-lg ${
+                    currentPage === page
+                      ? "bg-purple-100 text-purple-600"
+                      : "text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg ${
+                  currentPage === totalPages
+                    ? "text-slate-300 cursor-not-allowed"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
                 Next
               </button>
             </div>

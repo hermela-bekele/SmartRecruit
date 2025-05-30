@@ -42,7 +42,7 @@ export default function ApplicationForm({ job, onBack, onSubmitSuccess }) {
         phone,
         coverLetter,
         position: job.title,
-        company: job.company
+        company: job.company,
       };
 
       await submitApplication(applicationData, resume);
@@ -128,7 +128,6 @@ export default function ApplicationForm({ job, onBack, onSubmitSuccess }) {
           onClick={onBack}
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Back
         </button>
         <h3 className="text-xl font-bold text-blue-800">
           Apply for {job.title}
@@ -231,12 +230,12 @@ export default function ApplicationForm({ job, onBack, onSubmitSuccess }) {
               ) : (
                 <div>
                   <Upload className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                  <p className="text-sm text-blue-600 mb-1">
+                  <p className="text-sm text-blue-600 mb-1 text-center">
                     Drag and drop your resume here, or
                   </p>
                   <button
                     type="button"
-                    className="px-3 py-1 border border-blue-200 rounded-md text-sm font-medium text-blue-800 hover:bg-blue-50"
+                    className="block mx-auto px-3 py-1 border border-blue-200 rounded-md text-sm font-medium text-blue-800 hover:bg-blue-50"
                     onClick={() =>
                       document.getElementById("resume-upload")?.click()
                     }

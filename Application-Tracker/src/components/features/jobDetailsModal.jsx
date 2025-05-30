@@ -9,36 +9,11 @@ export default function JobDetailsModal({
     setShowApplicationForm,
   }) {
     // Format date to be more readable
-    const formattedDate = new Date(job.postedDate).toLocaleDateString("en-US", {
+    const formattedDate = new Date(job.postingDate).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
-  
-    // Extended job description for the modal
-    const fullDescription = `
-      ${job.description}
-      
-      We are looking for a talented professional to join our team. The ideal candidate will have a strong background in the field and be passionate about making an impact.
-      
-      Responsibilities:
-      • Develop and maintain high-quality solutions
-      • Collaborate with cross-functional teams
-      • Stay up-to-date with industry trends
-      • Participate in code reviews and technical discussions
-      
-      Requirements:
-      • 3+ years of relevant experience
-      • Strong problem-solving skills
-      • Excellent communication abilities
-      • Bachelor's degree in a related field or equivalent experience
-      
-      Benefits:
-      • Competitive salary
-      • Health insurance
-      • Flexible work arrangements
-      • Professional development opportunities
-    `;
   
     return (
       <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center p-4">
@@ -80,7 +55,7 @@ export default function JobDetailsModal({
                       Job Description
                     </h4>
                     <div className="whitespace-pre-line text-gray-600 text-left">
-                      {fullDescription}
+                      <span> {job.description}</span>
                     </div>
                   </div>
   
