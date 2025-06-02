@@ -92,7 +92,7 @@ export class ApplicationsService {
     console.log('Saving updated application:', application);
     const result = await this.applicationsRepository.save(application);
     console.log('Save result:', result);
-    
+
     return result;
   }
 

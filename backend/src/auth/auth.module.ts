@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { MailerModule } from '@nestjs-modules/mailer';
+//import { MailerModule } from '@nestjs-modules/mailer';
 import { PasswordResetTokenService } from 'src/common/entities/password-reset-token-service';
 import { UsersModule } from 'src/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
