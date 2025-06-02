@@ -35,6 +35,7 @@ export default function Home() {
         if (!response.ok) throw new Error("Failed to fetch jobs");
         const data = await response.json();
         setJobs(data);
+        setFilteredJobs(data); // Initialize filtered jobs with all jobs
 
         // Extract unique locations
         const uniqueLocations = [...new Set(data.map((job) => job.location))];
@@ -270,18 +271,19 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredJobs.length > 0 ? (
-              filteredJobs
-                .slice(0, Math.ceil(filteredJobs.length / 2))
-                .map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    onApply={() => {
-                      setSelectedJob(job);
-                      setShowApplicationForm(false);
-                    }}
-                  />
-                ))
+              (searchQuery || selectedLocation || selectedCategory 
+                ? filteredJobs // Show all filtered results when searching
+                : filteredJobs.slice(0, Math.ceil(jobs.length / 2)) // Show half when not searching
+              ).map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onApply={() => {
+                    setSelectedJob(job);
+                    setShowApplicationForm(false);
+                  }}
+                />
+              ))
             ) : (
               <div className="col-span-full text-center py-8">
                 <p className="text-blue-600 text-xl">
@@ -290,6 +292,7 @@ export default function Home() {
               </div>
             )}
           </div>
+
         </div>
       </section>
 

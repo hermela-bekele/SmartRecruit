@@ -131,7 +131,7 @@ const AddHrPage = () => {
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-4 text-left">Job Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+{/*                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
                     Job Title
                   </label>
@@ -142,74 +142,21 @@ const AddHrPage = () => {
                     onChange={(e) => setHrDetails({...hrDetails, jobTitle: e.target.value})}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
-                </div>
+                </div> */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
-                    Department
+                    Role
                   </label>
                   <select
-                    value={hrDetails.department}
+                    value={hrDetails.role}
                     onChange={(e) => setHrDetails({...hrDetails, department: e.target.value})}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   >
-                    <option value="">Select Department</option>
-                    <option value="Human Resources">Human Resources</option>
-                    <option value="Recruitment">Recruitment</option>
-                    <option value="Talent Acquisition">Talent Acquisition</option>
+                    <option value="">Select Role</option>
+                    <option value="Human Resources">SUPER_ADMIN</option>
+                    <option value="Recruitment">HR_ADMIN</option>
                   </select>
                 </div>
-              </div>
-            </div>
-
-            {/* Permissions */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 text-left">Account Permissions</h2>
-              <div className="space-y-4">
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    checked={hrDetails.permissions.viewCandidates}
-                    onChange={(e) => setHrDetails({
-                      ...hrDetails,
-                      permissions: {
-                        ...hrDetails.permissions,
-                        viewCandidates: e.target.checked
-                      }
-                    })}
-                    className="h-4 w-4 text-indigo-600 rounded border-gray-300"
-                  />
-                  <span className="text-sm text-gray-700 text-left">View Candidates</span>
-                </label>
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    checked={hrDetails.permissions.manageJobPostings}
-                    onChange={(e) => setHrDetails({
-                      ...hrDetails,
-                      permissions: {
-                        ...hrDetails.permissions,
-                        manageJobPostings: e.target.checked
-                      }
-                    })}
-                    className="h-4 w-4 text-indigo-600 rounded border-gray-300"
-                  />
-                  <span className="text-sm text-gray-700 mb-1 text-left">Manage Job Postings</span>
-                </label>
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    checked={hrDetails.permissions.manageSettings}
-                    onChange={(e) => setHrDetails({
-                      ...hrDetails,
-                      permissions: {
-                        ...hrDetails.permissions,
-                        manageSettings: e.target.checked
-                      }
-                    })}
-                    className="h-4 w-4 text-indigo-600 rounded border-gray-300"
-                  />
-                  <span className="text-sm text-gray-700 mb-1 text-left">Manage Settings</span>
-                </label>
               </div>
             </div>
 
