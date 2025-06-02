@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   Put,
+  Patch,
   Delete,
   UseInterceptors,
   UploadedFile,
@@ -35,7 +36,7 @@ export class ApplicationsController {
 
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Application> {
-    return this.applicationsService.findOne(+id);
+    return this.applicationsService.findOne(id);
   }
 
   @Put(':id')
@@ -43,11 +44,20 @@ export class ApplicationsController {
     @Param('id') id: string,
     @Body() updateDto: UpdateApplicationDto,
   ): Promise<Application> {
-    return this.applicationsService.update(+id, updateDto);
+    return this.applicationsService.update(id, updateDto);
+  }
+
+  @Patch(':id')
+  updateStatus(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateApplicationDto,
+  ): Promise<Application> {
+    console.log('Received PATCH request for application:', { id, updateDto });
+    return this.applicationsService.update(id, updateDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
-    return this.applicationsService.remove(+id);
+    return this.applicationsService.remove(id);
   }
 }

@@ -25,14 +25,26 @@ export default function Home() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [locations, setLocations] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-      const response = await fetch("http://localhost:3000/jobs");
-      if (!response.ok) throw new Error("Failed to fetch jobs");
+        const response = await fetch("http://localhost:3000/jobs");
+        if (!response.ok) throw new Error("Failed to fetch jobs");
         const data = await response.json();
         setJobs(data);
+
+        // Extract unique locations
+        const uniqueLocations = [...new Set(data.map((job) => job.location))];
+        setLocations(uniqueLocations);
+
+        // Extract unique categories (departments)
+        const uniqueCategories = [
+          ...new Set(data.map((job) => job.department)),
+        ];
+        setCategories(uniqueCategories);
       } catch (error) {
         console.error("Error fetching job data:", error);
       }
@@ -172,24 +184,18 @@ export default function Home() {
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
                 >
-                  <option value="" selected className="text-blue-400">
-                    All Location
+                  <option value="" className="text-blue-400">
+                    All Locations
                   </option>
-                  <option value="remote" className="text-blue-900">
-                    Remote
-                  </option>
-                  <option value="austin" className="text-blue-900">
-                    Austin, TX
-                  </option>
-                  <option value="san francisco" className="text-blue-900">
-                    San Francisco, CA
-                  </option>
-                  <option value="new york" className="text-blue-900">
-                    New York, NY
-                  </option>
-                  <option value="seattle" className="text-blue-900">
-                    Seattle, WA
-                  </option>
+                  {locations.map((location) => (
+                    <option
+                      key={location}
+                      value={location}
+                      className="text-blue-900"
+                    >
+                      {location}
+                    </option>
+                  ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                   <svg
@@ -216,24 +222,18 @@ export default function Home() {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  <option value="" selected className="text-blue-400">
-                    All Category
+                  <option value="" className="text-blue-400">
+                    All Categories
                   </option>
-                  <option value="engineering" className="text-blue-900">
-                    Engineering
-                  </option>
-                  <option value="design" className="text-blue-900">
-                    Design
-                  </option>
-                  <option value="marketing" className="text-blue-900">
-                    Marketing
-                  </option>
-                  <option value="product" className="text-blue-900">
-                    Product
-                  </option>
-                  <option value="sales" className="text-blue-900">
-                    Sales
-                  </option>
+                  {categories.map((category) => (
+                    <option
+                      key={category}
+                      value={category}
+                      className="text-blue-900"
+                    >
+                      {category}
+                    </option>
+                  ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                   <svg

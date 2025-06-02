@@ -143,37 +143,67 @@ function Applications() {
   };
 
   const handleStatusChange = async (candidateId, newStatus) => {
+    console.log('handleStatusChange called with:', { candidateId, newStatus });
+    
     try {
       const candidate = candidatesData.find(c => c.id === candidateId);
+      console.log('Found candidate:', candidate);
+      
+      if (!candidate) {
+        console.error('Candidate not found');
+        return;
+      }
+
+      // Show email modal first
+      console.log('Setting up email modal with:', {
+        candidate,
+        newStatus,
+        template: emailTemplates[newStatus]
+      });
+      
       setSelectedCandidate(candidate);
       setSelectedStatusType(newStatus);
       setSelectedTemplate(emailTemplates[newStatus]);
       setShowEmailModal(true);
+      
+      console.log('Email modal should be visible now');
     } catch (error) {
-      console.error('Error preparing status change:', error);
+      console.error('Error in handleStatusChange:', error);
+      alert('Failed to prepare email. Please try again.');
     }
   };
 
   const sendEmail = async (content, subject) => {
+    console.log('sendEmail called with:', { content, subject });
+    
     try {
-      console.log('Email sent:', {
+      // First update the status
+      console.log('Attempting to update status via API...');
+      const updatedApplication = await updateApplicationStatus(selectedCandidate.id, selectedStatusType);
+      console.log('Status updated successfully:', updatedApplication);
+      
+      // Update local state
+      setCandidatesData(prev => {
+        const updated = prev.map(c => 
+          c.id === selectedCandidate.id 
+            ? { ...c, status: selectedStatusType }
+            : c
+        );
+        console.log('Updated candidates data:', updated);
+        return updated;
+      });
+
+      // Log the email details (in a real app, this would send the email)
+      console.log('Would send email:', {
         to: selectedCandidate.email,
         subject,
         content
       });
       
-      // Update candidate status after sending email
-      await updateApplicationStatus(selectedCandidate.id, selectedStatusType);
-      
-      setCandidatesData(prev => 
-        prev.map(candidate => 
-          candidate.id === selectedCandidate.id
-            ? { ...candidate, status: selectedStatusType }
-            : candidate
-        )
-      );
+      setShowEmailModal(false);
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('Error updating status or sending email:', error.response?.data || error.message);
+      alert('Failed to update status. Please try again.');
     }
   };
 
@@ -371,8 +401,17 @@ function Applications() {
                   </td>
                   <td className="px-6 py-4 relative dropdown-container">
                     <button
+                      data-id={candidate.id}
                       onClick={(e) => {
                         e.stopPropagation();
+                        const button = e.currentTarget;
+                        const tableBottom = document.querySelector('table').getBoundingClientRect().bottom;
+                        const buttonBottom = button.getBoundingClientRect().bottom;
+                        const spaceBelow = tableBottom - buttonBottom;
+                        
+                        // Store whether to show dropdown above or below
+                        button.dataset.position = spaceBelow < 200 ? 'above' : 'below';
+                        
                         setOpenDropdownId(
                           openDropdownId === candidate.id
                             ? null
@@ -397,7 +436,14 @@ function Applications() {
                     </button>
 
                     {openDropdownId === candidate.id && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-200 z-10">
+                      <div 
+                        className={`
+                          absolute right-0 w-48 bg-white rounded-lg shadow-xl border border-slate-200 z-50
+                          ${document.querySelector(`[data-id="${candidate.id}"]`)?.dataset.position === 'above' 
+                            ? 'bottom-full mb-2' 
+                            : 'top-full mt-2'}
+                        `}
+                      >
                         <div className="p-2 space-y-1">
                           <button
                             onClick={() =>

@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Search,
-  Menu,
-  Calendar,
-  MapPin,
-} from "lucide-react";
+import { Search, Menu, Calendar, MapPin } from "lucide-react";
 import JobCard from "../JobCard";
 import JobDetailsModal from "../jobDetailsModal";
 import Footer from "../footer";
@@ -21,7 +16,9 @@ function JobsPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
-  
+  const [locations, setLocations] = useState([]);
+  const [categories, setCategories] = useState([]);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 6;
@@ -29,10 +26,20 @@ function JobsPage() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-      const response = await fetch("http://localhost:3000/jobs");
-      if (!response.ok) throw new Error("Failed to fetch jobs");
+        const response = await fetch("http://localhost:3000/jobs");
+        if (!response.ok) throw new Error("Failed to fetch jobs");
         const data = await response.json();
         setJobs(data);
+
+        // Extract unique locations
+        const uniqueLocations = [...new Set(data.map((job) => job.location))];
+        setLocations(uniqueLocations);
+
+        // Extract unique categories (departments)
+        const uniqueCategories = [
+          ...new Set(data.map((job) => job.department)),
+        ];
+        setCategories(uniqueCategories);
       } catch (error) {
         console.error("Error fetching job data:", error);
       }
@@ -44,16 +51,17 @@ function JobsPage() {
   useEffect(() => {
     const lowerQuery = searchQuery.toLowerCase();
 
-    const filtered = jobs.filter(job => {
-      const matchesSearch = job.title.toLowerCase().includes(lowerQuery) || 
-                          job.company.toLowerCase().includes(lowerQuery) || 
-                          job.description.toLowerCase().includes(lowerQuery);
-      const matchesLocation = selectedLocation ? 
-                          job.location.toLowerCase() === selectedLocation.toLowerCase() : 
-                          true;
-      const matchesCategory = selectedCategory ? 
-                          job.category.toLowerCase() === selectedCategory.toLowerCase() : 
-                          true;
+    const filtered = jobs.filter((job) => {
+      const matchesSearch =
+        job.title.toLowerCase().includes(lowerQuery) ||
+        job.company.toLowerCase().includes(lowerQuery) ||
+        job.description.toLowerCase().includes(lowerQuery);
+      const matchesLocation = selectedLocation
+        ? job.location.toLowerCase() === selectedLocation.toLowerCase()
+        : true;
+      const matchesCategory = selectedCategory
+        ? job.department.toLowerCase() === selectedCategory.toLowerCase()
+        : true;
 
       return matchesSearch && matchesLocation && matchesCategory;
     });
@@ -79,7 +87,9 @@ function JobsPage() {
             <div className="bg-blue-600 text-white font-bold rounded-lg p-2 mr-2">
               SM
             </div>
-            <span className="text-xl font-bold text-blue-800">Smart Recruit</span>
+            <span className="text-xl font-bold text-blue-800">
+              Smart Recruit
+            </span>
           </a>
 
           {/* Desktop Navigation */}
@@ -147,36 +157,78 @@ function JobsPage() {
                 <Search className="absolute left-3 top-2.5 h-5 w-5 text-blue-400" />
               </div>
 
-              {/* Location Filter */}
+              {/* location filter */}
               <div className="relative">
-                <select 
+                <select
                   className="w-full px-3 py-2 text-blue-900 border border-blue-200 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
                 >
-                  <option value="">All Locations</option>
-                  <option value="Remote">Remote</option>
-                  <option value="Austin, TX">Austin, TX</option>
-                  <option value="San Francisco, CA">San Francisco, CA</option>
-                  <option value="New York, NY">New York, NY</option>
-                  <option value="Seattle, WA">Seattle, WA</option>
+                  <option value="" className="text-blue-400">
+                    All Locations
+                  </option>
+                  {locations.map((location) => (
+                    <option
+                      key={location}
+                      value={location}
+                      className="text-blue-900"
+                    >
+                      {location}
+                    </option>
+                  ))}
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
               </div>
 
-              {/* Category Filter */}
+              {/* category filter */}
               <div className="relative">
-                <select 
+                <select
                   className="w-full px-3 py-2 text-blue-900 border border-blue-200 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  <option value="">All Categories</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Design">Design</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Product">Product</option>
-                  <option value="Sales">Sales</option>
+                  <option value="" className="text-blue-400">
+                    All Categories
+                  </option>
+                  {categories.map((category) => (
+                    <option
+                      key={category}
+                      value={category}
+                      className="text-blue-900"
+                    >
+                      {category}
+                    </option>
+                  ))}
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -196,7 +248,9 @@ function JobsPage() {
               ))
             ) : (
               <div className="col-span-full text-center py-8">
-                <p className="text-blue-600 text-xl">No jobs found matching your criteria</p>
+                <p className="text-blue-600 text-xl">
+                  No jobs found matching your criteria
+                </p>
               </div>
             )}
           </div>
@@ -205,19 +259,21 @@ function JobsPage() {
           {filteredJobs.length > jobsPerPage && (
             <div className="flex justify-center items-center mt-12 gap-4">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
               >
                 Previous
               </button>
-              
+
               <span className="text-blue-600 font-medium">
                 Page {currentPage} of {totalPages}
               </span>
-              
+
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={currentPage === totalPages}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
               >

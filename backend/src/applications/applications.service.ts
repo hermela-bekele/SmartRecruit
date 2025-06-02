@@ -56,7 +56,8 @@ export class ApplicationsService {
     return this.applicationsRepository.find();
   }
 
-  async findOne(id: number): Promise<Application> {
+  async findOne(id: string): Promise<Application> {
+    console.log('Finding application with ID:', id);
     const application = await this.applicationsRepository.findOneBy({ id });
     if (!application) {
       throw new NotFoundException(`Application with ID ${id} not found`);
@@ -65,14 +66,37 @@ export class ApplicationsService {
   }
 
   async update(
-    id: number,
+    id: string,
     updateDto: UpdateApplicationDto,
   ): Promise<Application> {
-    await this.applicationsRepository.update(id, updateDto);
-    return this.findOne(id); // Reuse the findOne method that throws if not found
+    console.log('Updating application:', { id, updateDto });
+
+    // First find the existing application
+    const application = await this.findOne(id);
+    console.log('Found existing application:', application);
+
+    // If updating timeline, merge with existing timeline
+    if (updateDto.timeline) {
+      application.timeline = [
+        ...(application.timeline || []),
+        ...updateDto.timeline,
+      ];
+    }
+
+    // Update other fields
+    Object.assign(application, {
+      ...updateDto,
+      timeline: application.timeline, // Keep the merged timeline
+    });
+
+    console.log('Saving updated application:', application);
+    const result = await this.applicationsRepository.save(application);
+    console.log('Save result:', result);
+    
+    return result;
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     await this.applicationsRepository.delete(id);
   }
 }

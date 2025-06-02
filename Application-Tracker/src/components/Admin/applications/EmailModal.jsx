@@ -13,8 +13,12 @@ export default function EmailModal({
   const [emailContent, setEmailContent] = useState("");
   const [subject, setSubject] = useState("");
 
+  // Reset form when modal opens with new data
   useEffect(() => {
+    console.log('EmailModal props changed:', { isOpen, candidate, template, status });
+    
     if (isOpen && template && candidate) {
+      console.log('Populating email content with template');
       const populatedContent = template
         .replace(/\(\(candidate_name\)\)/g, candidate.name)
         .replace(/\(\(position\)\)/g, candidate.position)
@@ -29,20 +33,52 @@ export default function EmailModal({
         Offer: `${candidate.company} Job Offer`
       };
       setSubject(subjects[status] || "Important Update Regarding Your Application");
+      
+      console.log('Email content and subject set:', {
+        content: populatedContent,
+        subject: subjects[status]
+      });
     }
   }, [isOpen, template, candidate, status]);
 
-  if (!isOpen || !candidate) return null;
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setEmailContent("");
+      setSubject("");
+    }
+  }, [isOpen]);
+
+  console.log('EmailModal rendering with isOpen:', isOpen);
+  if (!isOpen || !candidate) {
+    console.log('EmailModal not showing because:', { isOpen, hasCandidate: !!candidate });
+    return null;
+  }
+
+  const handleSend = () => {
+    console.log('Send button clicked');
+    if (!emailContent.trim() || !subject.trim()) {
+      alert('Please fill in both subject and content');
+      return;
+    }
+    onSend(emailContent, subject);
+  };
 
   return (
-    <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 ${isOpen ? 'block' : 'hidden'}`}>
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-3xl shadow-xl">
         <div className="p-8">
           <div className="flex justify-between items-start mb-6">
             <h3 className="text-2xl font-bold text-slate-900">
               Send {status} Email to {candidate.name}
             </h3>
-            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100">
+            <button 
+              onClick={() => {
+                console.log('Close button clicked');
+                onClose();
+              }} 
+              className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100"
+            >
               <X size={24} />
             </button>
           </div>
@@ -69,17 +105,20 @@ export default function EmailModal({
             </div>
 
             <div className="flex justify-end gap-4 pt-6">
-              <button onClick={onClose} className="px-6 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+              <button 
+                onClick={() => {
+                  console.log('Cancel button clicked');
+                  onClose();
+                }} 
+                className="px-6 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+              >
                 Cancel
               </button>
               <button 
-                onClick={() => {
-                  onSend(emailContent, subject);
-                  onClose();
-                }}
+                onClick={handleSend}
                 className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
-                Send Email
+                Send Email & Update Status
               </button>
             </div>
           </div>
