@@ -8,12 +8,53 @@ import {
 import Sidebar from "../../sidebar";
 import NotificationsTab from "./notificationTab"; 
 import SecurityTab from "./securityTab";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function SettingsPage() {
+  const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    jobTitle: "",
+    department: "",
+    companyName: "",
+    website: "",
+    address: "",
+    companySize: "50-100 employees"
+  });
+
+  // Initialize form data with user information
+  useEffect(() => {
+    if (user?.user) {
+      const [firstName = "", lastName = ""] = (user.user.name || "").split(" ");
+      setFormData(prev => ({
+        ...prev,
+        firstName,
+        lastName,
+        email: user.user.email || "",
+        jobTitle: user.user.jobTitle || "",
+        department: user.user.department || "",
+        companyName: user.user.companyName || "",
+        website: user.user.website || "",
+        address: user.user.address || "",
+        companySize: user.user.companySize || "50-100 employees"
+      }));
+    }
+  }, [user]);
+
+  // Handle form changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const navigation = [
     { name: "Profile", id: "profile", icon: UserCircleIcon },
@@ -34,9 +75,17 @@ export default function SettingsPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 1500);
+    try {
+      // TODO: Implement API call to update user information
+      console.log('Saving user data:', formData);
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulated delay
+    } catch (error) {
+      console.error('Error saving user data:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Render content based on active tab
@@ -64,7 +113,9 @@ export default function SettingsPage() {
                     </label>
                     <input
                       type="text"
-                      defaultValue="HR"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     />
                   </div>
@@ -74,7 +125,9 @@ export default function SettingsPage() {
                     </label>
                     <input
                       type="text"
-                      defaultValue="Manager"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     />
                   </div>
@@ -87,7 +140,9 @@ export default function SettingsPage() {
                     </label>
                     <input
                       type="email"
-                      defaultValue="hr@company.com"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     />
                   </div>
@@ -97,7 +152,9 @@ export default function SettingsPage() {
                     </label>
                     <input
                       type="text"
-                      defaultValue="HR Manager"
+                      name="jobTitle"
+                      value={formData.jobTitle}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     />
                   </div>
@@ -107,7 +164,9 @@ export default function SettingsPage() {
                     </label>
                     <input
                       type="text"
-                      defaultValue="Human Resources"
+                      name="department"
+                      value={formData.department}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     />
                   </div>
@@ -141,7 +200,9 @@ export default function SettingsPage() {
                   </label>
                   <input
                     type="text"
-                    defaultValue="Acme Inc."
+                    name="companyName"
+                    value={formData.companyName}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                   />
                 </div>
@@ -152,7 +213,9 @@ export default function SettingsPage() {
                   </label>
                   <input
                     type="url"
-                    defaultValue="https://acme.com"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                   />
                 </div>
@@ -162,7 +225,9 @@ export default function SettingsPage() {
                     Address
                   </label>
                   <textarea
-                    defaultValue="123 Main St, San Francisco, CA 94105"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all h-32"
                   />
                 </div>
@@ -172,8 +237,10 @@ export default function SettingsPage() {
                     Company Size
                   </label>
                   <select
+                    name="companySize"
+                    value={formData.companySize}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none bg-select-arrow bg-no-repeat bg-right-4"
-                    defaultValue="50-100 employees"
                   >
                     <option>10-50 employees</option>
                     <option>50-100 employees</option>
@@ -184,8 +251,8 @@ export default function SettingsPage() {
 
               <div className="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center">
                 <div className="text-sm">
-                  <p className="font-medium text-indigo-600">HR Manager</p>
-                  <p className="text-gray-600">infocompany.com</p>
+                  <p className="font-medium text-indigo-600">{formData.jobTitle}</p>
+                  <p className="text-gray-600">{formData.email}</p>
                 </div>
                 <button
                   onClick={handleSave}

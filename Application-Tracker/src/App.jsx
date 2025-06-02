@@ -26,7 +26,7 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRoles={["SUPER_ADMIN", "HR_ADMIN"]}>
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -34,7 +34,7 @@ function App() {
           <Route
             path="/applications"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRoles={["SUPER_ADMIN", "HR_ADMIN"]}>
                 <Applications />
               </ProtectedRoute>
             }
@@ -42,7 +42,7 @@ function App() {
           <Route
             path="/jobs"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRoles={["SUPER_ADMIN", "HR_ADMIN"]}>
                 <Jobs />
               </ProtectedRoute>
             }
@@ -50,7 +50,7 @@ function App() {
           <Route
             path="/settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRoles={["SUPER_ADMIN", "HR_ADMIN"]}>
                 <Settings />
               </ProtectedRoute>
             }
@@ -58,7 +58,7 @@ function App() {
           <Route
             path="/add-hr"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRoles={["SUPER_ADMIN"]}>
                 <AddHR />
               </ProtectedRoute>
             }

@@ -19,9 +19,15 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const response = await authService.login(email, password);
-    setUser(response);
-    return response;
+    try {
+      const response = await authService.login(email, password);
+      console.log('Auth response:', response);
+      setUser(response);
+      return response;
+    } catch (error) {
+      console.error('Login error in context:', error);
+      throw error;
+    }
   };
 
   const logout = () => {
@@ -54,19 +60,33 @@ export const useAuth = () => {
 };
 
 // Protected Route component
-export const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+export const ProtectedRoute = ({ children, requiredRoles = [] }) => {
+  const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate('/');
+    if (!loading) {
+      if (!isAuthenticated) {
+        navigate('/');
+      } else if (requiredRoles.length > 0 && !requiredRoles.includes(user?.user?.role)) {
+        // If specific roles are required and user doesn't have them, redirect to dashboard
+        navigate('/dashboard');
+      }
     }
-  }, [loading, isAuthenticated, navigate]);
+  }, [loading, isAuthenticated, user, requiredRoles, navigate]);
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  return isAuthenticated ? children : null;
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Only check roles if they are required
+  if (requiredRoles.length > 0 && !requiredRoles.includes(user?.user?.role)) {
+    return null;
+  }
+
+  return children;
 }; 

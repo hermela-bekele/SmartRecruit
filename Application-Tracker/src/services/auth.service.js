@@ -6,10 +6,13 @@ const AUTH_API = `${API_URL}/auth`;
 class AuthService {
   async login(email, password) {
     try {
+      console.log('Attempting login with:', { email });
       const response = await axios.post(`${AUTH_API}/login`, {
         email,
         password
       });
+      
+      console.log('Login response:', response.data);
       
       if (response.data.access_token) {
         localStorage.setItem('user', JSON.stringify(response.data));
@@ -17,6 +20,7 @@ class AuthService {
       
       return response.data;
     } catch (error) {
+      console.error('Login error in service:', error.response || error);
       throw this.handleError(error);
     }
   }
@@ -26,9 +30,17 @@ class AuthService {
   }
 
   getCurrentUser() {
-    const userStr = localStorage.getItem('user');
-    if (userStr) return JSON.parse(userStr);
-    return null;
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
   }
 
   isAuthenticated() {

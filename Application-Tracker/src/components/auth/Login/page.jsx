@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import authService from "../../../services/auth.service";
+import { useAuth } from "../../../contexts/AuthContext";
 
 function LoginModal({ onClose }) {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -26,10 +27,12 @@ function LoginModal({ onClose }) {
     setIsLoading(true);
   
     try {
-      await authService.login(email, password);
+      const response = await login(email, password);
+      console.log('Login successful:', response);
       onClose(); // Close the modal
       navigate("/dashboard"); // Navigate to dashboard
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
