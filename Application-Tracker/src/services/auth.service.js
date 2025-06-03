@@ -16,6 +16,7 @@ class AuthService {
       
       if (response.data.access_token) {
         localStorage.setItem('user', JSON.stringify(response.data));
+        localStorage.setItem('token', response.data.access_token);
       }
       
       return response.data;
@@ -27,6 +28,7 @@ class AuthService {
 
   logout() {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   }
 
   getCurrentUser() {
@@ -43,9 +45,13 @@ class AuthService {
     }
   }
 
+  getToken() {
+    return localStorage.getItem('token');
+  }
+
   isAuthenticated() {
-    const user = this.getCurrentUser();
-    return !!user?.access_token;
+    const token = this.getToken();
+    return !!token;
   }
 
   async requestPasswordReset(email) {

@@ -2,12 +2,14 @@ import {
   Injectable,
   ConflictException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -58,7 +60,7 @@ export class UsersService {
     }
   }
 
-  async updateLastLogin(userId: number): Promise<void> {
+  async updateLastLogin(userId: string): Promise<void> {
     await this.usersRepository.update(userId, {
       lastLoginAt: new Date(),
     });
@@ -66,10 +68,75 @@ export class UsersService {
 
   // Additional recommended methods
   async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+    return this.usersRepository.find({
+      select: ['id', 'email', 'role', 'createdAt', 'lastLoginAt']
+    });
   }
 
-  async findById(id: number): Promise<User | null> {
-    return this.usersRepository.findOneBy({ id });
+  async findById(id: string): Promise<User | null> {
+    const user = await this.usersRepository.findOne({ 
+      where: { id },
+      select: ['id', 'email', 'role', 'createdAt', 'lastLoginAt', 'passwordResetRequired']
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    return user;
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    try {
+      console.log('Updating user with ID:', id);
+      console.log('Update data:', updateUserDto);
+
+      const user = await this.usersRepository.findOne({ where: { id } });
+      
+      if (!user) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+
+      // If updating email, check if it's already taken
+      if (updateUserDto.email && updateUserDto.email !== user.email) {
+        const existingUser = await this.findByEmail(updateUserDto.email);
+        if (existingUser) {
+          throw new ConflictException('Email already registered');
+        }
+      }
+
+      // Only allow updating email and role for existing users
+      const allowedUpdates = {
+        email: updateUserDto.email,
+        role: updateUserDto.role
+      };
+
+      // Update the user with only allowed fields
+      Object.assign(user, allowedUpdates);
+      const savedUser = await this.usersRepository.save(user);
+      console.log('User updated successfully:', savedUser);
+      return savedUser;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
+  async remove(id: string): Promise<void> {
+    try {
+      console.log('Attempting to delete user with ID:', id);
+      const user = await this.usersRepository.findOne({ where: { id } });
+      
+      if (!user) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+
+      console.log('Found user:', user);
+      await this.usersRepository.remove(user);
+      console.log('User successfully deleted');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
   }
 }
