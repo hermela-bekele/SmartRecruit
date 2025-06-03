@@ -26,13 +26,13 @@ export class UsersController {
   @Get(':id')
   @Roles('SUPER_ADMIN')
   findOne(@Param('id') id: string) {
-    return this.usersService.findById(Number(id));
+    return this.usersService.findById(id);
   }
 
   @Patch(':id')
   @Roles('SUPER_ADMIN')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(Number(id), updateUserDto);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')

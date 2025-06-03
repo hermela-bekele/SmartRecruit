@@ -5,7 +5,7 @@ import { UserRole } from '../shared/user-role.enum';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @Column({ unique: true })
   email: string;
