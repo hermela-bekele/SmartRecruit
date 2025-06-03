@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -23,7 +23,7 @@ import { PasswordResetToken } from 'src/common/entities/password-reset-token.ent
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
+    forwardRef(() => UsersModule),
     //    MailerModule.forRootAsync({
     //     imports: [ConfigModule],
     //     useFactory: (configService: ConfigService) => ({

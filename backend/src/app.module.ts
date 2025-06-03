@@ -1,32 +1,42 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-// Add the TypeOrmModuleOptions import from typeorm
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import databaseConfig from './config/database.config';
-import { validateEnv } from './config/env.validation';
-import { JobsModule } from './jobs/jobs.module';
-import { AuthModule } from './auth/auth.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { JobsModule } from './jobs/jobs.module';
 import { ApplicationsModule } from './applications/applications.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
-      validate: validateEnv,
-      load: [databaseConfig],
-      cache: true,
     }),
     TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
+        const portStr = configService.get<string>('DB_PORT');
+        const port = portStr ? parseInt(portStr) : 5432;
+
+        return {
+          type: 'postgres',
+          host: configService.get<string>('DB_HOST') || 'localhost',
+          port,
+          username: configService.get<string>('DB_USERNAME') || 'postgres',
+          password: configService.get<string>('DB_PASSWORD') || 'password',
+          database:
+            configService.get<string>('DB_NAME') || 'application-tracker',
+          autoLoadEntities: true,
+          synchronize: configService.get<string>('NODE_ENV') === 'development',
+        };
+      },
       inject: [ConfigService],
-      useFactory: (config: ConfigService) =>
-        config.getOrThrow<TypeOrmModuleOptions>('database'),
     }),
+    UsersModule,
+    AuthModule,
     JobsModule,
     ApplicationsModule,
-    AuthModule,
-    UsersModule,
+    MailModule,
   ],
 })
 export class AppModule {}

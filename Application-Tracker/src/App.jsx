@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Home from './components/features/Home/page'
 import Alljobs from './components/features/All-jobs/page'
 import Login from './components/auth/Login/page'
+import ResetPassword from './components/auth/ResetPassword/page'
 //import { SignupForm } from './components/auth/signup/page'
 import Dashboard from './components/Admin/dashboard/page'
 import Applications from './components/Admin/applications/page'
@@ -27,6 +28,7 @@ function App() {
             path="/login" 
             element={<Login onClose={() => window.history.back()} />} 
           />
+          <Route path="/reset-password" element={<ResetPassword />} />
           {/* <Route path="/signup" element={<SignupForm />} /> */}
           <Route
             path="/dashboard"

@@ -1,7 +1,7 @@
 // src/auth/password-reset-token.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { PasswordResetToken } from './password-reset-token.entity';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
@@ -15,6 +15,7 @@ export class PasswordResetTokenService {
   ) {}
 
   async generateToken(user: User): Promise<string> {
+    // Clean up any existing tokens for this user
     await this.tokenRepository.delete({ user: { id: user.id } });
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -27,5 +28,35 @@ export class PasswordResetTokenService {
     });
 
     return token;
+  }
+
+  async validateToken(token: string): Promise<PasswordResetToken> {
+    // Clean up expired tokens
+    await this.tokenRepository.delete({
+      expiresAt: LessThan(new Date()),
+    });
+
+    // Find all valid tokens
+    const resetTokens = await this.tokenRepository
+      .createQueryBuilder('token')
+      .leftJoinAndSelect('token.user', 'user')
+      .where('token.used = :used', { used: false })
+      .andWhere('token.expiresAt > :now', { now: new Date() })
+      .getMany();
+
+    // Find the matching token
+    for (const resetToken of resetTokens) {
+      const isValid = await bcrypt.compare(token, resetToken.token);
+      if (isValid) {
+        return resetToken;
+      }
+    }
+
+    throw new BadRequestException('Invalid or expired token');
+  }
+
+  async markTokenAsUsed(token: PasswordResetToken): Promise<void> {
+    token.used = true;
+    await this.tokenRepository.save(token);
   }
 }
