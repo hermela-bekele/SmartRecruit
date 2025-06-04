@@ -8,10 +8,12 @@ export class MailService {
   private readonly logger = new Logger(MailService.name);
 
   constructor(private configService: ConfigService) {
+    const smtpPort = this.configService.get<string>('SMTP_PORT');
+    const port = smtpPort ? parseInt(smtpPort, 10) : 587;
+
     const smtpConfig = {
       host: this.configService.get<string>('SMTP_HOST') || 'smtp.gmail.com',
-      port: this.configService.get<string>('SMTP_PORT') ? 
-        parseInt(this.configService.get('SMTP_PORT')) : 587,
+      port,
       secure: this.configService.get<string>('SMTP_SECURE') === 'true',
       auth: {
         user: this.configService.get<string>('SMTP_USER'),
@@ -103,6 +105,37 @@ export class MailService {
         subject,
         text,
         html,
+      });
+
+      this.logger.log('Email sent successfully:', result);
+    } catch (error) {
+      this.logger.error('Failed to send email:', error);
+      throw error;
+    }
+  }
+
+  async sendCandidateEmail(
+    email: string,
+    subject: string,
+    content: string,
+  ): Promise<void> {
+    try {
+      this.logger.log(`Preparing to send candidate email to: ${email}`);
+
+      const fromEmail = this.configService.get<string>('SMTP_FROM') || 'noreply@smartrecruit.com';
+
+      this.logger.log('Sending email with configuration:', {
+        from: fromEmail,
+        to: email,
+        subject,
+      });
+
+      const result = await this.transporter.sendMail({
+        from: fromEmail,
+        to: email,
+        subject,
+        text: content,
+        html: content.replace(/\n/g, '<br/>'), // Simple conversion of newlines to HTML breaks
       });
 
       this.logger.log('Email sent successfully:', result);

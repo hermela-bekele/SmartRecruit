@@ -6,12 +6,14 @@ import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class ApplicationsService {
   constructor(
     @InjectRepository(Application)
     private applicationsRepository: Repository<Application>,
+    private mailService: MailService,
   ) {}
 
   async create(
@@ -98,5 +100,43 @@ export class ApplicationsService {
 
   async remove(id: string): Promise<void> {
     await this.applicationsRepository.delete(id);
+  }
+
+  async updateStatus(id: string, status: string, emailContent?: string, emailSubject?: string): Promise<Application> {
+    const application = await this.applicationsRepository.findOne({ where: { id } });
+    
+    if (!application) {
+      throw new Error('Application not found');
+    }
+
+    application.status = status;
+    
+    // Add the status change to the timeline
+    if (!application.timeline) {
+      application.timeline = [];
+    }
+    
+    application.timeline.push({
+      date: new Date().toISOString().split('T')[0],
+      status: status
+    });
+
+    const updatedApplication = await this.applicationsRepository.save(application);
+
+    // Send email if content is provided
+    if (emailContent && emailSubject) {
+      try {
+        await this.mailService.sendCandidateEmail(
+          application.email,
+          emailSubject,
+          emailContent
+        );
+      } catch (error) {
+        console.error('Failed to send email:', error);
+        // Don't throw the error as we still want to update the status
+      }
+    }
+
+    return updatedApplication;
   }
 }

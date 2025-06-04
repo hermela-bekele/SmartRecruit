@@ -133,13 +133,22 @@ export class ApplicationsController {
     return this.applicationsService.update(id, updateDto);
   }
 
-  @Patch(':id')
-  updateStatus(
+  @Patch(':id/status')
+  async updateStatus(
     @Param('id') id: string,
-    @Body() updateDto: UpdateApplicationDto,
+    @Body()
+    body: {
+      status: string;
+      emailContent?: string;
+      emailSubject?: string;
+    },
   ): Promise<Application> {
-    console.log('Received PATCH request for application:', { id, updateDto });
-    return this.applicationsService.update(id, updateDto);
+    return this.applicationsService.updateStatus(
+      id,
+      body.status,
+      body.emailContent,
+      body.emailSubject,
+    );
   }
 
   @Delete(':id')

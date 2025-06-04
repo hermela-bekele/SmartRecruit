@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApplicationsController } from './applications.controller';
 import { ApplicationsService } from './applications.service';
 import { Application } from './entities/application.entity';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { Application } from './entities/application.entity';
       useClass: MulterConfigService,
     }),
     TypeOrmModule.forFeature([Application]),
+    MailModule,
   ],
   controllers: [ApplicationsController],
   providers: [ApplicationsService],

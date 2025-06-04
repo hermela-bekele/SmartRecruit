@@ -180,7 +180,12 @@ function Applications() {
     try {
       // First update the status
       console.log('Attempting to update status via API...');
-      const updatedApplication = await updateApplicationStatus(selectedCandidate.id, selectedStatusType);
+      const updatedApplication = await updateApplicationStatus(
+        selectedCandidate.id,
+        selectedStatusType,
+        content,
+        subject
+      );
       console.log('Status updated successfully:', updatedApplication);
       
       // Update local state
@@ -192,13 +197,6 @@ function Applications() {
         );
         console.log('Updated candidates data:', updated);
         return updated;
-      });
-
-      // Log the email details (in a real app, this would send the email)
-      console.log('Would send email:', {
-        to: selectedCandidate.email,
-        subject,
-        content
       });
       
       setShowEmailModal(false);

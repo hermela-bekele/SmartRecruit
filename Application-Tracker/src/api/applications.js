@@ -36,30 +36,13 @@ export const submitApplication = async (applicationData, resumeFile) => {
   return response.data;
 };
 
-export const updateApplicationStatus = async (id, status) => {
-  try {
-    console.log('Making PATCH request to:', `${API_URL}/applications/${id}`);
-    console.log('Request payload:', { status, timeline: [{ date: new Date().toISOString(), status }] });
-    
-    const response = await axios.patch(`${API_URL}/applications/${id}`, { 
-      status,
-      timeline: [{
-        date: new Date().toISOString(),
-        status: status
-      }]
-    });
-    
-    console.log('Response from server:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error details:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      headers: error.response?.headers
-    });
-    throw error;
-  }
+export const updateApplicationStatus = async (id, status, emailContent, emailSubject) => {
+  const response = await axios.patch(`${API_URL}/applications/${id}/status`, {
+    status,
+    emailContent,
+    emailSubject,
+  });
+  return response.data;
 };
 
 export const downloadResume = async (id) => {
