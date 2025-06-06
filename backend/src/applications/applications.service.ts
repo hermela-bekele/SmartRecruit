@@ -102,26 +102,34 @@ export class ApplicationsService {
     await this.applicationsRepository.delete(id);
   }
 
-  async updateStatus(id: string, status: string, emailContent?: string, emailSubject?: string): Promise<Application> {
-    const application = await this.applicationsRepository.findOne({ where: { id } });
-    
+  async updateStatus(
+    id: string,
+    status: string,
+    emailContent?: string,
+    emailSubject?: string,
+  ): Promise<Application> {
+    const application = await this.applicationsRepository.findOne({
+      where: { id },
+    });
+
     if (!application) {
       throw new Error('Application not found');
     }
 
     application.status = status;
-    
+
     // Add the status change to the timeline
     if (!application.timeline) {
       application.timeline = [];
     }
-    
+
     application.timeline.push({
       date: new Date().toISOString().split('T')[0],
-      status: status
+      status: status,
     });
 
-    const updatedApplication = await this.applicationsRepository.save(application);
+    const updatedApplication =
+      await this.applicationsRepository.save(application);
 
     // Send email if content is provided
     if (emailContent && emailSubject) {
@@ -129,7 +137,7 @@ export class ApplicationsService {
         await this.mailService.sendCandidateEmail(
           application.email,
           emailSubject,
-          emailContent
+          emailContent,
         );
       } catch (error) {
         console.error('Failed to send email:', error);

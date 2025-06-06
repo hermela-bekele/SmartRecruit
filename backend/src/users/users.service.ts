@@ -173,9 +173,9 @@ export class UsersService {
   async remove(id: string): Promise<void> {
     try {
       console.log('Attempting to delete user with ID:', id);
-      const user = await this.usersRepository.findOne({ 
+      const user = await this.usersRepository.findOne({
         where: { id },
-        relations: ['resetTokens']
+        relations: ['resetTokens'],
       });
 
       if (!user) {
@@ -183,7 +183,7 @@ export class UsersService {
       }
 
       console.log('Found user:', user);
-      
+
       // First, delete all related password reset tokens
       if (user.resetTokens && user.resetTokens.length > 0) {
         console.log('Deleting related password reset tokens...');
