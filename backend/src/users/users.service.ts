@@ -47,17 +47,24 @@ export class UsersService {
 
     const savedUser = await this.usersRepository.save(user);
 
-    // Generate password reset token and send email
+    // Send welcome email with credentials
     try {
-      const resetToken =
-        await this.passwordResetTokenService.generateToken(savedUser);
-      await this.mailService.sendPasswordResetEmail(
-        savedUser.email,
-        resetToken,
-        true, // indicates this is a new account
-      );
+      if (userData.sendWelcomeEmail) {
+        await this.mailService.sendWelcomeEmail(
+          savedUser.email,
+          userData.password // Send the original unencrypted password
+        );
+      } else {
+        // Generate password reset token and send email as before
+        const resetToken = await this.passwordResetTokenService.generateToken(savedUser);
+        await this.mailService.sendPasswordResetEmail(
+          savedUser.email,
+          resetToken,
+          true, // indicates this is a new account
+        );
+      }
     } catch (error) {
-      console.error('Error sending password reset email:', error);
+      console.error('Error sending email:', error);
       // Don't throw the error as the user is already created
       // Just log it and continue
     }

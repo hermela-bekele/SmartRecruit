@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import JobsService from "../../../services/jobs.service";
 
 function Jobs() {
   const [showModal, setShowModal] = useState(false);
@@ -31,8 +32,7 @@ function Jobs() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 5;
-
-  const API_URL = "http://localhost:3000/jobs";
+  const [errors, setErrors] = useState({});
 
   // Detect mobile screen size
   useEffect(() => {
@@ -59,36 +59,12 @@ function Jobs() {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch(API_URL);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          `HTTP error! Status: ${response.status} - ${
-            errorData.message || "Unknown error"
-          }`
-        );
-      }
-
-      const data = await response.json();
-      setJobs(data);
+      console.log("Fetching jobs...");
+      const data = await JobsService.getAllJobs();
       console.log("Jobs fetched successfully:", data);
+      setJobs(data);
     } catch (error) {
-      console.error("Fetch error details:", {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        type:
-          error instanceof TypeError ? "Network Error" : "Application Error",
-      });
-
-      // Specific network error handling
-      if (error instanceof TypeError) {
-        console.error("Network error detected. Check:");
-        console.log("- Internet connection");
-        console.log("- CORS configuration");
-        console.log("- Server availability (is backend running?)");
-      }
+      console.error("Error fetching jobs:", error);
     }
   };
 
@@ -122,74 +98,110 @@ function Jobs() {
     setOpenDropdownId(null);
   };
 
-  // New handler for updating job
   const handleUpdateJob = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     try {
-      // Ensure ID is properly formatted
-      const response = await fetch(`${API_URL}/${editingJob.id}`, {
-        method: "PATCH", // Verify backend accepts PATCH
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          // Convert empty expiration date to null
-          expirationDate: formData.expirationDate || null,
-          // Ensure date formatting matches backend expectations
-          postingDate: new Date(formData.postingDate).toISOString(),
-        }),
+      await JobsService.updateJob(editingJob.id, {
+        ...formData,
+        expirationDate: formData.expirationDate || null,
+        postingDate: new Date(formData.postingDate).toISOString(),
       });
-
-      const responseData = await response.json(); // Always parse first
-
-      if (!response.ok) {
-        throw new Error(
-          responseData.message || `HTTP ${response.status} Error`
-        );
-      }
 
       await fetchJobs();
       setEditingJob(null);
+      setErrors({});
     } catch (error) {
-      console.error("Update error:", {
-        error: error.message,
-        status: error.response?.status,
-        data: await error.response?.text(), // Get raw response
-      });
+      console.error("Error updating job:", error);
       setErrors({ submit: error.message });
     }
   };
 
   const handleDeleteJob = async (id) => {
     try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) throw new Error("Deletion failed");
-
+      await JobsService.deleteJob(id);
       setJobs((prev) => prev.filter((job) => job.id !== id));
     } catch (error) {
       console.error("Error deleting job:", error);
+      alert("Failed to delete job. Please try again.");
     }
   };
 
-  const handleClosePosition = async (id) => {
+const handleClosePosition = async (id) => {
+  try {
+    console.log('Attempting to close position with ID:', id);
+    
+    // Get the current job to verify we have the correct ID
+    const currentJob = jobs.find(j => j.id === id);
+    if (!currentJob) {
+      throw new Error(`Could not find job with ID ${id}`);
+    }
+    console.log('Found job to close:', currentJob);
+
     try {
-      const response = await fetch(`${API_URL}/${id}/close`, {
-        method: "PATCH",
+      // First try the dedicated endpoint
+      const result = await JobsService.closePosition(id);
+      console.log('Position closed successfully using closePosition endpoint:', result);
+    } catch (closeError) {
+      console.error('Error using closePosition endpoint:', closeError);
+      console.log('Attempting fallback to updateJob...');
+      
+      // Fallback to updateJob if closePosition fails
+      const result = await JobsService.updateJob(id, {
+        status: "Closed",
+        // Include other required fields to ensure validation passes
+        title: currentJob.title,
+        department: currentJob.department,
+        location: currentJob.location,
+        company: currentJob.company,
+        employmentType: currentJob.employmentType,
+        description: currentJob.description,
+        postingDate: currentJob.postingDate
       });
-
-      if (!response.ok) throw new Error("Status update failed");
-
-      setJobs((prev) =>
-        prev.map((job) => (job.id === id ? { ...job, status: "Closed" } : job))
-      );
-    } catch (error) {
-      console.error("Error closing position:", error);
+      console.log('Position closed successfully using updateJob fallback:', result);
     }
-  };
+    
+    await fetchJobs(); // Refresh the jobs list
+  } catch (error) {
+    console.error("Error closing position:", error);
+    // More detailed error message
+    const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
+    alert(`Failed to close position: ${errorMessage}. Please check console for details.`);
+  }
+};
+
+const handleReopenPosition = async (id) => {
+  try {
+    console.log('Attempting to reopen position with ID:', id);
+    
+    // Get the current job to verify we have the correct ID
+    const currentJob = jobs.find(j => j.id === id);
+    if (!currentJob) {
+      throw new Error(`Could not find job with ID ${id}`);
+    }
+    console.log('Found job to reopen:', currentJob);
+    
+    const result = await JobsService.updateJob(id, {
+      status: "Active",
+      // Include other required fields to ensure validation passes
+      title: currentJob.title,
+      department: currentJob.department,
+      location: currentJob.location,
+      company: currentJob.company,
+      employmentType: currentJob.employmentType,
+      description: currentJob.description,
+      postingDate: currentJob.postingDate
+    });
+    
+    console.log('Position reopened successfully:', result);
+    await fetchJobs();
+  } catch (error) {
+    console.error("Error reopening position:", error);
+    const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
+    alert(`Failed to reopen position: ${errorMessage}. Please check console for details.`);
+  }
+};
 
   // Get unique filter values
   const departments = [...new Set(jobs.map((job) => job.department))];
@@ -255,8 +267,6 @@ function Jobs() {
     expirationDate: "",
   });
 
-  const [errors, setErrors] = useState({});
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -283,27 +293,11 @@ function Jobs() {
     if (!validateForm()) return;
 
     try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          postingDate: new Date(formData.postingDate).toISOString(),
-          expirationDate: formData.expirationDate
-            ? new Date(formData.expirationDate).toISOString()
-            : null,
-        }),
+      await JobsService.createJob({
+        ...formData,
+        expirationDate: formData.expirationDate || null,
+        postingDate: new Date(formData.postingDate).toISOString(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Creation failed");
-      }
-
-      const newJob = await response.json();
-
-      // Update state correctly
-      setJobs((prev) => [newJob, ...prev]);
 
       // Reset form and close modal
       setFormData({
@@ -318,6 +312,9 @@ function Jobs() {
       });
       setShowModal(false);
       setErrors({});
+      
+      // Refresh jobs list
+      await fetchJobs();
     } catch (error) {
       console.error("Error creating job:", error);
       setErrors({ submit: error.message });
@@ -559,31 +556,52 @@ function Jobs() {
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-200 z-10 dropdown-container">
                           <div className="p-2 space-y-1">
                             <button
-                              onClick={() => handleEditJob(job.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditJob(job.id);
+                              }}
                               className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
                             >
                               Edit Position
                             </button>
                             <button
-                              onClick={() =>
-                                console.log(
-                                  `Navigate to applicants for ${job.id}`
-                                )
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                console.log(`Navigate to applicants for ${job.id}`);
+                              }}
                               className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
                             >
                               View Applicants
                             </button>
-                            {job.status !== "Closed" && (
+                            {job.status === "Closed" ? (
                               <button
-                                onClick={() => handleClosePosition(job.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleReopenPosition(job.id);
+                                  setOpenDropdownId(null);
+                                }}
+                                className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 rounded-md"
+                              >
+                                Reopen Position
+                              </button>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleClosePosition(job.id);
+                                  setOpenDropdownId(null);
+                                }}
                                 className="w-full px-4 py-2 text-left text-sm text-amber-600 hover:bg-amber-50 rounded-md"
                               >
                                 Close Position
                               </button>
                             )}
                             <button
-                              onClick={() => handleDeleteJob(job.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteJob(job.id);
+                                setOpenDropdownId(null);
+                              }}
                               className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-md"
                             >
                               Delete

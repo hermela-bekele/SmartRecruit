@@ -235,4 +235,79 @@ export class MailService {
       throw error;
     }
   }
+
+  async sendWelcomeEmail(email: string, tempPassword: string): Promise<void> {
+    try {
+      this.logger.log(`Preparing to send welcome email with credentials to: ${email}`);
+
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+      const loginUrl = `${frontendUrl}/login`;
+
+      const subject = 'Welcome to SmartRecruit - Your Account Credentials';
+
+      const text = `Welcome to SmartRecruit!\n\n
+        Your HR account has been created successfully. Here are your login credentials:\n\n
+        Email: ${email}\n
+        Temporary Password: ${tempPassword}\n\n
+        For security reasons, please follow these steps:\n
+        1. Login using the temporary password at: ${loginUrl}\n
+        2. Change your password immediately after your first login\n\n
+        Important Security Notes:\n
+        - This temporary password will expire in 24 hours\n
+        - Never share your password with anyone\n
+        - Choose a strong password that includes numbers, special characters, and mixed case letters\n\n
+        If you have any issues logging in, please contact your system administrator.\n\n
+        Best regards,\n
+        The SmartRecruit Team`;
+
+      const html = `
+        <h2>Welcome to SmartRecruit!</h2>
+        <p>Your HR account has been created successfully. Here are your login credentials:</p>
+        
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Temporary Password:</strong> ${tempPassword}</p>
+        </div>
+
+        <h3>Important Next Steps:</h3>
+        <ol>
+          <li>Login using the temporary password at: <a href="${loginUrl}">${loginUrl}</a></li>
+          <li>Change your password immediately after your first login</li>
+        </ol>
+
+        <div style="background-color: #fff3cd; padding: 20px; border-radius: 5px; margin: 20px 0;">
+          <h4 style="color: #856404; margin-top: 0;">Security Notes:</h4>
+          <ul style="color: #856404;">
+            <li>This temporary password will expire in 24 hours</li>
+            <li>Never share your password with anyone</li>
+            <li>Choose a strong password that includes numbers, special characters, and mixed case letters</li>
+          </ul>
+        </div>
+
+        <p>If you have any issues logging in, please contact your system administrator.</p>
+
+        <p>Best regards,<br>The SmartRecruit Team</p>`;
+
+      const fromEmail = this.configService.get<string>('SMTP_FROM') || 'noreply@smartrecruit.com';
+
+      this.logger.log('Sending welcome email with configuration:', {
+        from: fromEmail,
+        to: email,
+        subject
+      });
+
+      const result = await this.transporter.sendMail({
+        from: fromEmail,
+        to: email,
+        subject,
+        text,
+        html
+      });
+
+      this.logger.log('Welcome email sent successfully:', result);
+    } catch (error) {
+      this.logger.error('Failed to send welcome email:', error);
+      throw error;
+    }
+  }
 }

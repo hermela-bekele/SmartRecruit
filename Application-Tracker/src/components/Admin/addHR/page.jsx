@@ -116,10 +116,13 @@ const AddHrPage = () => {
         toast.success('User updated successfully');
         setEditingUser(null);
       } else {
-        // Create new user
+        // Create new user with welcome email flag
         console.log('Creating new user:', hrDetails);
-        await axios.post(`${API_URL}/users`, hrDetails, { headers });
-        toast.success('HR account created successfully');
+        await axios.post(`${API_URL}/users`, {
+          ...hrDetails,
+          sendWelcomeEmail: true // Add this flag to indicate welcome email should be sent
+        }, { headers });
+        toast.success('HR account created successfully and welcome email sent');
       }
       
       // Reset form

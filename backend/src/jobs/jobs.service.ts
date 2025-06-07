@@ -49,7 +49,7 @@ export class JobsService {
     return qb.getMany();
   }
 
-  async findOne(id: number): Promise<Job> {
+  async findOne(id: string): Promise<Job> {
     const job = await this.jobsRepository.findOne({ where: { id } });
     if (!job) {
       throw new NotFoundException(`Job with ID ${id} not found`);
@@ -57,19 +57,19 @@ export class JobsService {
     return job;
   }
 
-  async update(id: number, updateJobDto: UpdateJobDto): Promise<Job> {
+  async update(id: string, updateJobDto: UpdateJobDto): Promise<Job> {
     const job = await this.findOne(id);
     return this.jobsRepository.save({ ...job, ...updateJobDto });
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const result = await this.jobsRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Job with ID ${id} not found`);
     }
   }
 
-  async closePosition(id: number): Promise<Job> {
+  async closePosition(id: string): Promise<Job> {
     const job = await this.findOne(id);
     job.status = 'Closed';
     return this.jobsRepository.save(job);
