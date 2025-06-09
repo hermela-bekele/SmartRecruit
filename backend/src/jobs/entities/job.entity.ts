@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Application } from '../../applications/entities/application.entity';
 
 @Entity()
 export class Job {
@@ -29,9 +30,12 @@ export class Job {
   @Column({ type: 'date', nullable: true })
   expirationDate?: Date;
 
-  @Column({ default: 0 })
-  applications: number;
-
   @Column({ default: 'Active' })
   status: string;
+
+  @OneToMany(() => Application, application => application.job)
+  applications: Application[];
+
+  @Column({ default: 0 })
+  applicationCount: number;
 }

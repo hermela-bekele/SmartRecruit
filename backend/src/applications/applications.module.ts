@@ -6,6 +6,7 @@ import { ApplicationsController } from './applications.controller';
 import { ApplicationsService } from './applications.service';
 import { Application } from './entities/application.entity';
 import { MailModule } from '../mail/mail.module';
+import { JobsModule } from '../jobs/jobs.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { MailModule } from '../mail/mail.module';
     }),
     TypeOrmModule.forFeature([Application]),
     MailModule,
+    JobsModule,
   ],
   controllers: [ApplicationsController],
   providers: [ApplicationsService],

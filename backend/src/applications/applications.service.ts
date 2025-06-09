@@ -7,6 +7,9 @@ import { UpdateApplicationDto } from './dto/update-application.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { MailService } from '../mail/mail.service';
+import { JobsService } from '../jobs/jobs.service';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 @Injectable()
 export class ApplicationsService {
@@ -14,92 +17,147 @@ export class ApplicationsService {
     @InjectRepository(Application)
     private applicationsRepository: Repository<Application>,
     private mailService: MailService,
+    private jobsService: JobsService,
   ) {}
 
   async create(
-    createDto: CreateApplicationDto,
-    file: Express.Multer.File,
+    createApplicationDto: CreateApplicationDto,
+    file?: Express.Multer.File
   ): Promise<Application> {
-    const application = new Application();
-    application.name = createDto.name;
-    application.email = createDto.email;
-    application.position = createDto.position;
-    application.company = createDto.company;
-
-    // Handle optional fields with default values
-    application.coverLetter = createDto.coverLetter || '';
-    application.phone = createDto.phone || '';
-    application.skills = createDto.skills || [];
-    application.timeline = createDto.timeline || [];
-
-    if (file) {
-      const uploadDir = path.join(__dirname, '..', '..', 'uploads');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
+    try {
+      console.log('Creating application with file:', {
+        fileExists: !!file,
+        fileDetails: file ? {
+          originalname: file.originalname,
+          filename: file.filename,
+          mimetype: file.mimetype,
+          size: file.size,
+        } : null,
+      });
+      
+      // Get the job using the jobId from the DTO
+      const job = await this.jobsService.findOne(createApplicationDto.jobId);
+      
+      // Handle file path if file was uploaded
+      let resumePath: string | null = null;
+      if (file && file.filename) {
+        const filePath = join(process.cwd(), 'uploads', file.filename);
+        if (existsSync(filePath)) {
+          resumePath = file.filename;
+          console.log('File saved successfully:', {
+            filename: file.filename,
+            path: filePath,
+          });
+        } else {
+          console.error('File not found after upload:', filePath);
+          throw new Error('Failed to save resume file');
+        }
       }
 
-      // Sanitize filename to prevent directory traversal
-      const sanitizedFileName = file.originalname.replace(
-        /[^a-zA-Z0-9._-]/g,
-        '_',
-      );
-      const fileName = `${Date.now()}-${sanitizedFileName}`;
-      const filePath = path.join(uploadDir, fileName);
+      // Create the application entity
+      const application = new Application();
+      application.name = createApplicationDto.name;
+      application.email = createApplicationDto.email;
+      application.position = createApplicationDto.position;
+      application.company = createApplicationDto.company;
+      application.phone = createApplicationDto.phone;
+      application.skills = createApplicationDto.skills || [];
+      application.coverLetter = createApplicationDto.coverLetter;
+      application.resumePath = resumePath;
+      application.job = job;
+      application.jobId = job.id;
+      application.status = 'Received';
+      application.timeline = [
+        { date: new Date().toISOString(), status: 'Received' }
+      ];
 
-      // Use async file writing
-      const fileBuffer = await fs.promises.readFile(file.path);
-      await fs.promises.writeFile(filePath, fileBuffer);
-      application.resumePath = `/uploads/${fileName}`;
+      console.log('Saving application with data:', {
+        name: application.name,
+        email: application.email,
+        position: application.position,
+        resumePath: application.resumePath,
+        jobId: application.jobId,
+      });
+
+      // Save the application
+      const savedApplication = await this.applicationsRepository.save(application);
+      await this.jobsService.incrementApplicationCount(job.id);
+
+      console.log('Application saved successfully:', {
+        id: savedApplication.id,
+        resumePath: savedApplication.resumePath,
+      });
+
+      return savedApplication;
+    } catch (error) {
+      console.error('Error creating application:', {
+        error: error.message,
+        stack: error.stack,
+      });
+      
+      // If there was an error and a file was uploaded, try to delete it
+      if (file && file.filename) {
+        try {
+          const filePath = join(process.cwd(), 'uploads', file.filename);
+          if (existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log('Cleaned up file after error:', filePath);
+          }
+        } catch (deleteError) {
+          console.error('Error deleting file after failed application:', deleteError);
+        }
+      }
+      
+      throw error;
     }
-    return this.applicationsRepository.save(application);
   }
 
-  findAll(): Promise<Application[]> {
-    return this.applicationsRepository.find();
+  async findAll(): Promise<Application[]> {
+    return this.applicationsRepository.find({
+      relations: ['job'],
+    });
   }
 
   async findOne(id: string): Promise<Application> {
-    console.log('Finding application with ID:', id);
-    const application = await this.applicationsRepository.findOneBy({ id });
+    const application = await this.applicationsRepository.findOne({
+      where: { id },
+      relations: ['job'],
+    });
+
     if (!application) {
       throw new NotFoundException(`Application with ID ${id} not found`);
     }
+
     return application;
   }
 
-  async update(
-    id: string,
-    updateDto: UpdateApplicationDto,
-  ): Promise<Application> {
-    console.log('Updating application:', { id, updateDto });
-
-    // First find the existing application
+  async update(id: string, updateApplicationDto: UpdateApplicationDto): Promise<Application> {
     const application = await this.findOne(id);
-    console.log('Found existing application:', application);
-
-    // If updating timeline, merge with existing timeline
-    if (updateDto.timeline) {
+    
+    if (updateApplicationDto.status && updateApplicationDto.status !== application.status) {
       application.timeline = [
         ...(application.timeline || []),
-        ...updateDto.timeline,
+        { date: new Date().toISOString(), status: updateApplicationDto.status },
       ];
     }
 
-    // Update other fields
-    Object.assign(application, {
-      ...updateDto,
-      timeline: application.timeline, // Keep the merged timeline
-    });
-
-    console.log('Saving updated application:', application);
-    const result = await this.applicationsRepository.save(application);
-    console.log('Save result:', result);
-
-    return result;
+    Object.assign(application, updateApplicationDto);
+    return this.applicationsRepository.save(application);
   }
 
   async remove(id: string): Promise<void> {
-    await this.applicationsRepository.delete(id);
+    const application = await this.findOne(id);
+    const jobId = application.job.id;
+    
+    await this.applicationsRepository.remove(application);
+    await this.jobsService.decrementApplicationCount(jobId);
+  }
+
+  async findByJob(jobId: string): Promise<Application[]> {
+    return this.applicationsRepository.find({
+      where: { jobId },
+      relations: ['job'],
+    });
   }
 
   async updateStatus(
@@ -128,8 +186,7 @@ export class ApplicationsService {
       status: status,
     });
 
-    const updatedApplication =
-      await this.applicationsRepository.save(application);
+    const updatedApplication = await this.applicationsRepository.save(application);
 
     // Send email if content is provided
     if (emailContent && emailSubject) {

@@ -8,6 +8,7 @@ import ResetPassword from './components/auth/ResetPassword/page'
 import Dashboard from './components/Admin/dashboard/page'
 import Applications from './components/Admin/applications/page'
 import Jobs from './components/Admin/jobs/page'
+import JobApplicants from './components/Admin/jobs/JobApplicants'
 import Settings from './components/Admin/settings/page'
 import AddHR from './components/Admin/addHR/page'
 import { AuthProvider, ProtectedRoute } from './contexts/AuthContext'
@@ -51,6 +52,14 @@ function App() {
             element={
               <ProtectedRoute requiredRoles={["SUPER_ADMIN", "HR_ADMIN"]}>
                 <Jobs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/jobs/:jobId/applicants"
+            element={
+              <ProtectedRoute requiredRoles={["SUPER_ADMIN", "HR_ADMIN"]}>
+                <JobApplicants />
               </ProtectedRoute>
             }
           />

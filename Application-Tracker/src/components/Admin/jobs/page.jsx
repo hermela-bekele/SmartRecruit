@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Sidebar from "../../sidebar";
 import {
@@ -17,6 +17,7 @@ import {
 import JobsService from "../../../services/jobs.service";
 
 function Jobs() {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -321,6 +322,12 @@ const handleReopenPosition = async (id) => {
     }
   };
 
+  // Update the View Applicants button click handler
+  const handleViewApplicants = (jobId) => {
+    navigate(`/jobs/${jobId}/applicants`);
+    setOpenDropdownId(null);
+  };
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50/5">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -507,7 +514,7 @@ const handleReopenPosition = async (id) => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-slate-900">
-                          {job.applications}
+                          {job.applicationCount || 0}
                         </span>
                         <span className="text-slate-500 text-sm">
                           applicants
@@ -567,7 +574,7 @@ const handleReopenPosition = async (id) => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                console.log(`Navigate to applicants for ${job.id}`);
+                                handleViewApplicants(job.id);
                               }}
                               className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
                             >

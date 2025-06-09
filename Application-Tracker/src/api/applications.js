@@ -8,32 +8,72 @@ export const fetchApplications = async () => {
 };
 
 export const submitApplication = async (applicationData, resumeFile) => {
-  const formData = new FormData();
-  formData.append('name', applicationData.name);
-  formData.append('email', applicationData.email);
-  formData.append('position', applicationData.position);
-  formData.append('company', applicationData.company);
-  formData.append('coverLetter', applicationData.coverLetter || '');
-  formData.append('phone', applicationData.phone || '');
+  try {
+    console.log('Creating form data for submission...');
+    const formData = new FormData();
+    
+    // Add application data
+    formData.append('name', applicationData.name);
+    formData.append('email', applicationData.email);
+    formData.append('position', applicationData.position);
+    formData.append('company', applicationData.company);
+    formData.append('coverLetter', applicationData.coverLetter || '');
+    formData.append('phone', applicationData.phone || '');
+    formData.append('jobId', applicationData.jobId);
 
-  if (applicationData.skills) {
-    formData.append('skills', JSON.stringify(applicationData.skills));
-  }
-  
-  if (applicationData.timeline) {
-    formData.append('timeline', JSON.stringify(applicationData.timeline));
-  }
-  
-  if (resumeFile) {
-    formData.append('resume', resumeFile);
-  }
-
-  const response = await axios.post(`${API_URL}/applications`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
+    if (applicationData.skills) {
+      formData.append('skills', JSON.stringify(applicationData.skills));
     }
-  });
-  return response.data;
+    
+    if (applicationData.timeline) {
+      formData.append('timeline', JSON.stringify(applicationData.timeline));
+    }
+
+    // Validate and add resume file
+    if (!resumeFile) {
+      throw new Error('Resume file is required');
+    }
+
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(resumeFile.type)) {
+      throw new Error('Invalid file type. Please upload a PDF, DOC, or DOCX file.');
+    }
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (resumeFile.size > maxSize) {
+      throw new Error('File size too large. Maximum size is 5MB.');
+    }
+
+    console.log('Adding resume file to form data:', {
+      name: resumeFile.name,
+      type: resumeFile.type,
+      size: resumeFile.size
+    });
+    formData.append('resume', resumeFile);
+
+    console.log('Sending application to server...');
+    const response = await axios.post(`${API_URL}/applications`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        console.log('Upload progress:', percentCompleted + '%');
+      }
+    });
+
+    console.log('Server response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error in submitApplication:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    throw error;
+  }
 };
 
 export const updateApplicationStatus = async (id, status, emailContent, emailSubject) => {

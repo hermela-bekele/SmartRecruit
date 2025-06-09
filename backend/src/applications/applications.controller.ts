@@ -11,6 +11,9 @@ import {
   UploadedFile,
   Res,
   StreamableFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApplicationsService } from './applications.service';
@@ -21,18 +24,41 @@ import { Response } from 'express';
 import { createReadStream } from 'fs';
 import { join } from 'path';
 import * as fs from 'fs';
+import { multerConfig } from '../config/multer.config';
 
 @Controller('applications')
 export class ApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('resume'))
-  create(
+  @UseInterceptors(FileInterceptor('resume', multerConfig))
+  async create(
     @Body() createDto: CreateApplicationDto,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<Application> {
-    return this.applicationsService.create(createDto, file);
+    try {
+      console.log('Received application data:', {
+        dto: createDto,
+        file: file ? {
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+        } : null,
+      });
+
+      if (!file) {
+        throw new Error('Resume file is required');
+      }
+
+      if (!createDto.jobId) {
+        throw new Error('Job ID is required');
+      }
+
+      return this.applicationsService.create(createDto, file);
+    } catch (error) {
+      console.error('Error creating application:', error);
+      throw error;
+    }
   }
 
   @Get()

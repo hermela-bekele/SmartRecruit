@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Job } from '../../jobs/entities/job.entity';
 
 @Entity()
 export class Application {
@@ -10,6 +11,13 @@ export class Application {
 
   @Column()
   email: string;
+
+  @ManyToOne(() => Job, job => job.applications, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'jobId' })
+  job: Job;
+
+  @Column()
+  jobId: string;
 
   @Column()
   position: string;
@@ -23,16 +31,16 @@ export class Application {
   @Column({ type: 'text', nullable: true })
   coverLetter?: string;
 
-  @Column({ nullable: true })
-  resumePath: string;
+  @Column({ type: 'text', nullable: true })
+  resumePath?: string | null;
 
   @Column({ nullable: true })
   phone?: string;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'jsonb', nullable: true, default: [] })
   skills: string[];
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'jsonb', nullable: true, default: [] })
   timeline: { date: string; status: string }[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

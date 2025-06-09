@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Put,
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
@@ -29,6 +30,11 @@ export class JobsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.jobsService.findOne(id);
+  }
+
+  @Get(':id/applications')
+  getJobApplications(@Param('id') id: string) {
+    return this.jobsService.getJobApplications(id);
   }
 
   @Patch(':id')

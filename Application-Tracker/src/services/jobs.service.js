@@ -2,7 +2,6 @@ import axios from 'axios';
 import authService from './auth.service';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-const JOBS_API = `${API_URL}/jobs`;
 
 console.log('Jobs Service initialized with API_URL:', API_URL);
 
@@ -18,9 +17,9 @@ const api = axios.create({
 // Add auth token to requests
 api.interceptors.request.use((config) => {
   console.log('Making request to:', config.url);
-  const user = authService.getCurrentUser();
-  if (user?.access_token) {
-    config.headers.Authorization = `Bearer ${user.access_token}`;
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 }, (error) => {
@@ -57,7 +56,7 @@ class JobsService {
         if (value) params.append(key, value);
       });
       
-      const response = await api.get(`/jobs?${params.toString()}`);
+      const response = await api.get(`/jobs${params.toString() ? `?${params.toString()}` : ''}`);
       console.log('Fetched all jobs:', response.data);
       return response.data;
     } catch (error) {
@@ -78,12 +77,54 @@ class JobsService {
         if (value) params.append(key, value);
       });
       
-      // Use axios instead of fetch for consistent error handling
-      const response = await api.get(`/jobs?${params.toString()}`);
+      const response = await api.get(`/jobs/public${params.toString() ? `?${params.toString()}` : ''}`);
       console.log('Fetched public jobs:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching public jobs:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw this.handleError(error);
+    }
+  }
+
+  async getJob(id) {
+    try {
+      console.log('Fetching job details for ID:', id);
+      const response = await api.get(`/jobs/${id}`);
+      console.log('Fetched job details:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching job details:', {
+        id,
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw this.handleError(error);
+    }
+  }
+
+  async getJobApplicants(jobId) {
+    try {
+      console.log('Fetching applicants for job ID:', jobId);
+      const response = await api.get(`/jobs/${jobId}/applications`);
+      console.log('Fetched job applicants:', response.data);
+      
+      // Ensure we return an array even if the response is empty
+      const applicants = Array.isArray(response.data) ? response.data : [];
+      return applicants.map(applicant => ({
+        ...applicant,
+        appliedDate: applicant.appliedDate || new Date().toISOString(),
+        status: applicant.status || 'Received',
+        phone: applicant.phone || null,
+        resumePath: applicant.resumePath || null
+      }));
+    } catch (error) {
+      console.error('Error fetching job applicants:', {
+        jobId,
         message: error.message,
         response: error.response?.data,
         status: error.response?.status

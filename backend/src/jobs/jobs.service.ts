@@ -16,14 +16,27 @@ export class JobsService {
   async create(createJobDto: CreateJobDto): Promise<Job> {
     const job = this.jobsRepository.create({
       ...createJobDto,
-      applications: 0,
+      applicationCount: 0,
       status: 'Active',
     });
     return this.jobsRepository.save(job);
   }
 
   async findAll(query?: any): Promise<Job[]> {
-    const qb = this.jobsRepository.createQueryBuilder('job');
+    const qb = this.jobsRepository.createQueryBuilder('job')
+      .select([
+        'job.id',
+        'job.title',
+        'job.department',
+        'job.location',
+        'job.company',
+        'job.employmentType',
+        'job.description',
+        'job.postingDate',
+        'job.expirationDate',
+        'job.status',
+        'job.applicationCount'
+      ]);
 
     if (query?.department) {
       qb.andWhere('job.department = :department', {
@@ -50,7 +63,10 @@ export class JobsService {
   }
 
   async findOne(id: string): Promise<Job> {
-    const job = await this.jobsRepository.findOne({ where: { id } });
+    const job = await this.jobsRepository.findOne({
+      where: { id },
+      relations: ['applications'],
+    });
     if (!job) {
       throw new NotFoundException(`Job with ID ${id} not found`);
     }
@@ -59,19 +75,41 @@ export class JobsService {
 
   async update(id: string, updateJobDto: UpdateJobDto): Promise<Job> {
     const job = await this.findOne(id);
-    return this.jobsRepository.save({ ...job, ...updateJobDto });
+    Object.assign(job, updateJobDto);
+    return this.jobsRepository.save(job);
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.jobsRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Job with ID ${id} not found`);
-    }
+    const job = await this.findOne(id);
+    await this.jobsRepository.remove(job);
   }
 
   async closePosition(id: string): Promise<Job> {
     const job = await this.findOne(id);
     job.status = 'Closed';
     return this.jobsRepository.save(job);
+  }
+
+  async getJobApplications(id: string) {
+    const job = await this.jobsRepository.findOne({
+      where: { id },
+      relations: ['applications'],
+    });
+    if (!job) {
+      throw new NotFoundException(`Job with ID ${id} not found`);
+    }
+    return job.applications;
+  }
+
+  async incrementApplicationCount(id: string): Promise<void> {
+    const job = await this.findOne(id);
+    job.applicationCount = (job.applicationCount || 0) + 1;
+    await this.jobsRepository.save(job);
+  }
+
+  async decrementApplicationCount(id: string): Promise<void> {
+    const job = await this.findOne(id);
+    job.applicationCount = Math.max(0, (job.applicationCount || 1) - 1);
+    await this.jobsRepository.save(job);
   }
 }

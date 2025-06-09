@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ArrowLeft, Upload } from "lucide-react";
 import { submitApplication } from "../../api/applications";
 
@@ -13,52 +13,117 @@ export default function ApplicationForm({ job, onBack, onSubmitSuccess }) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
-  const validateForm = () => {
-    const newErrors = {};
+  const validateForm = useCallback(() => {
+    const validationErrors = {};
 
-    if (!name.trim()) newErrors.name = "Name is required";
-    if (!email.trim()) newErrors.email = "Email is required";
-    else if (!/^\S+@\S+\.\S+$/.test(email))
-      newErrors.email = "Email is invalid";
-    if (phone && !/^(\+\d{1,3})?(\d{3})?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(phone))
-      newErrors.phone = "Invalid phone number";
-    if (!resume) newErrors.resume = "Resume is required";
+    // Validate name
+    if (!name.trim()) {
+      validationErrors.name = "Name is required";
+    }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    // Validate email
+    if (!email.trim()) {
+      validationErrors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+      validationErrors.email = "Email is invalid";
+    }
+
+    // Validate phone (optional)
+    if (phone && !/^(\+\d{1,3})?(\d{3})?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(phone)) {
+      validationErrors.phone = "Invalid phone number";
+    }
+
+    // Validate resume
+    if (!resume) {
+      validationErrors.resume = "Resume is required";
+    } else {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(resume.type)) {
+        validationErrors.resume = "Please upload a PDF, DOC, or DOCX file";
+      }
+      
+      // Validate file size (5MB)
+      const maxSize = 5 * 1024 * 1024;
+      if (resume.size > maxSize) {
+        validationErrors.resume = "File size must be less than 5MB";
+      }
+    }
+
+    // Update errors state
+    setErrors(validationErrors);
+
+    // Log validation results
+    if (Object.keys(validationErrors).length > 0) {
+      console.log('Validation failed:', validationErrors);
+    }
+
+    return Object.keys(validationErrors).length === 0;
+  }, [name, email, phone, resume]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    const isValid = validateForm();
+    if (!isValid) {
+      return;
+    }
 
     setIsSubmitting(true);
 
     try {
       const applicationData = {
-        name,
-        email,
-        phone,
-        coverLetter,
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        coverLetter: coverLetter.trim(),
         position: job.title,
         company: job.company,
+        jobId: job.id,
       };
 
-      await submitApplication(applicationData, resume);
+      console.log('Submitting application:', {
+        data: { ...applicationData, phone: applicationData.phone || 'Not provided' },
+        resume: {
+          name: resume.name,
+          type: resume.type,
+          size: Math.round(resume.size / 1024) + 'KB'
+        }
+      });
 
+      await submitApplication(applicationData, resume);
+      console.log('Application submitted successfully');
+      
       setIsSuccess(true);
+      setErrors({});
 
       setTimeout(() => {
         onSubmitSuccess();
       }, 2000);
     } catch (error) {
-      console.error("Submission failed:", error);
-      setErrors({
-        submit:
-          error.response?.data?.message ||
-          "Failed to submit application. Please try again.",
+      console.error('Submission failed:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
       });
+
+      const submissionErrors = {};
+
+      if (error.message.includes('Resume file is required')) {
+        submissionErrors.resume = 'Please upload your resume';
+      }
+
+      if (error.message.includes('Job ID is required')) {
+        submissionErrors.submit = 'Invalid job selection. Please try again.';
+      }
+
+      if (error.response?.data?.message) {
+        submissionErrors.submit = error.response.data.message;
+      } else if (!submissionErrors.submit) {
+        submissionErrors.submit = 'Failed to submit application. Please try again.';
+      }
+
+      setErrors(submissionErrors);
     } finally {
       setIsSubmitting(false);
     }
