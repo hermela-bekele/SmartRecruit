@@ -8,7 +8,7 @@ export class MailService {
   private readonly logger = new Logger(MailService.name);
   private readonly fromEmail = {
     name: 'SmartRecruit',
-    address: 'noreply@smartrecruit.com'
+    address: 'noreply@smartrecruit.com',
   };
 
   constructor(private configService: ConfigService) {
@@ -56,10 +56,10 @@ export class MailService {
       greetingTimeout: 10000,
       socketTimeout: 10000,
       // Add envelope sender configuration
-      envelope: {
+/*       envelope: {
         from: smtpUser, // Use the authenticated Gmail account for SMTP
-        to: null // Will be set per email
-      }
+        to: null, // Will be set per email
+      }, */
     };
 
     this.logger.log('Initializing SMTP configuration:', {
@@ -108,7 +108,12 @@ export class MailService {
       });
   }
 
-  private async sendEmail(to: string, subject: string, text: string, html: string): Promise<void> {
+  private async sendEmail(
+    to: string,
+    subject: string,
+    text: string,
+    html: string,
+  ): Promise<void> {
     try {
       const smtpUser = this.configService.get<string>('SMTP_USER');
       const result = await this.transporter.sendMail({
@@ -120,8 +125,8 @@ export class MailService {
         html,
         envelope: {
           from: smtpUser,
-          to
-        }
+          to,
+        },
       });
 
       this.logger.log('Email sent successfully:', result);
@@ -136,7 +141,8 @@ export class MailService {
     token: string,
     isNewAccount: boolean = false,
   ): Promise<void> {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
     const subject = isNewAccount
@@ -182,7 +188,8 @@ export class MailService {
   }
 
   async sendWelcomeEmail(email: string, tempPassword: string): Promise<void> {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
     const loginUrl = `${frontendUrl}/login`;
 
     const subject = 'Welcome to SmartRecruit - Your Account Credentials';

@@ -52,11 +52,12 @@ export class UsersService {
       if (userData.sendWelcomeEmail) {
         await this.mailService.sendWelcomeEmail(
           savedUser.email,
-          userData.password // Send the original unencrypted password
+          userData.password, // Send the original unencrypted password
         );
       } else {
         // Generate password reset token and send email as before
-        const resetToken = await this.passwordResetTokenService.generateToken(savedUser);
+        const resetToken =
+          await this.passwordResetTokenService.generateToken(savedUser);
         await this.mailService.sendPasswordResetEmail(
           savedUser.email,
           resetToken,

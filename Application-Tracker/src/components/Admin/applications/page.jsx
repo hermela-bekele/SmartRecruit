@@ -35,6 +35,10 @@ function Applications() {
     Received: "",
     Interview: "",
     Reject: "",
+    Hired: "",
+    UnderReview: "",
+    Shortlisted: "",
+    Assessment: "",
     Offer: ""
   });
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -50,6 +54,10 @@ function Applications() {
       Received: `Dear ((candidate_name)),\n\nThank you for applying for the ((position)) role at ((company_name)). We have received your application and will review it shortly.\n\nBest regards,\n((company_name)) Recruitment Team`,
       Interview: `Dear ((candidate_name)),\n\nWe would like to invite you for an interview for the ((position)) role. Please let us know your availability for the coming week.\n\nBest regards,\n((company_name)) Recruitment Team`,
       Reject: `Dear ((candidate_name)),\n\nThank you for your interest in the ((position)) role at ((company_name)). After careful consideration, we have decided to move forward with other candidates whose qualifications better match our current needs.\n\nBest regards,\n((company_name)) Recruitment Team`,
+       UnderReview: `Dear ((candidate_name)),\n\nWe wanted to inform you that your application for the ((position)) role at ((company_name)) is currently under review by our hiring team. We will contact you soon with an update on your application status.\n\nBest regards,\n((company_name)) Recruitment Team`,
+    Shortlisted: `Dear ((candidate_name)),\n\nWe are pleased to inform you that you have been shortlisted for the ((position)) role at ((company_name)). We will be in touch shortly to discuss the next steps in the hiring process.\n\nBest regards,\n((company_name)) Recruitment Team`,
+    Assessment: `Dear ((candidate_name)),\n\nAs part of the selection process for the ((position)) role, we would like to invite you to complete an assessment. We will send you the details and instructions for the assessment shortly.\n\nBest regards,\n((company_name)) Recruitment Team`,                                                                                          
+     Hired: `Dear ((candidate_name)),\n\nWelcome to ((company_name))! We are excited to have you join us as ((position)). We will be in touch with details about your onboarding process.\n\nBest regards,\n((company_name)) Recruitment Team`,
       Offer: `Dear ((candidate_name)),\n\nWe are pleased to offer you the position of ((position)) at ((company_name)). Please find attached the formal offer letter with all the details.\n\nBest regards,\n((company_name)) Recruitment Team`
     };
     setEmailTemplates(savedTemplates);
@@ -515,6 +523,30 @@ function Applications() {
                           >
                             Received
                           </button>
+                                                    <button
+                            onClick={() =>
+                              handleStatusChange(candidate.id, "UnderReview")
+                            }
+                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
+                          >
+                            Under Review
+                          </button>
+                                                    <button
+                            onClick={() =>
+                              handleStatusChange(candidate.id, "Shortlisted")
+                            }
+                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
+                          >
+                            Shortlisted
+                          </button>
+                                                    <button
+                            onClick={() =>
+                              handleStatusChange(candidate.id, "Assessment")
+                            }
+                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
+                          >
+                            Assessment
+                          </button>
                           <button
                             onClick={() =>
                               handleStatusChange(candidate.id, "Interview")
@@ -530,6 +562,14 @@ function Applications() {
                             className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
                           >
                             Offer
+                          </button>
+                                                    <button
+                            onClick={() =>
+                              handleStatusChange(candidate.id, "Hired")
+                            }
+                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
+                          >
+                            Hired
                           </button>
                           <button
                             onClick={() =>

@@ -30,7 +30,10 @@ export default function EmailModal({
         Received: `Application Received Confirmation - ${candidate.company}`,
         Interview: `${candidate.company} Interview Invitation`,
         Reject: `Application Update from ${candidate.company}`,
-        Offer: `${candidate.company} Job Offer`
+        Offer: `${candidate.company} Job Offer`,
+        UnderReview: `Application Under Review - ${candidate.company}`,
+        Assessment: `Assessment Required for ${candidate.name} at ${candidate.company}`,
+        Hired: `Congratulations! You've been hired at ${candidate.company}`,
       };
       setSubject(subjects[status] || "Important Update Regarding Your Application");
       
