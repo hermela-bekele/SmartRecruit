@@ -306,7 +306,7 @@ function Applications() {
         <div className="mb-8 flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">
-              Candidate Applications
+              Candidates
             </h1>
             <div className="flex items-center gap-3">
               <span className="text-slate-600 flex items-center gap-1">

@@ -13,6 +13,7 @@ import {
   User,
 } from "lucide-react";
 import JobsService from "../../../services/jobs.service";
+import CandidateDetailsModal from "../applications/CandidateDetailsModal";
 
 export default function JobApplicants() {
   const { jobId } = useParams();
@@ -24,6 +25,8 @@ export default function JobApplicants() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -43,14 +46,14 @@ export default function JobApplicants() {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch job details
         const jobData = await JobsService.getJob(jobId);
         setJob(jobData);
-        
+
         // Fetch applicants
         const applicantsData = await JobsService.getJobApplicants(jobId);
-        console.log('Received applicants data:', applicantsData);
+        console.log("Received applicants data:", applicantsData);
         setApplicants(applicantsData);
       } catch (error) {
         console.error("Error fetching job and applicants:", error);
@@ -63,11 +66,22 @@ export default function JobApplicants() {
     fetchJobAndApplicants();
   }, [jobId]);
 
-  const filteredApplicants = applicants.filter((applicant) =>
-    applicant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    applicant.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    applicant.status.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredApplicants = applicants.filter(
+    (applicant) =>
+      applicant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      applicant.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      applicant.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const openModal = (candidate) => {
+    setSelectedCandidate(candidate);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedCandidate(null);
+  };
 
   if (loading) {
     return (
@@ -82,7 +96,7 @@ export default function JobApplicants() {
       <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="text-red-500 mb-4">{error}</div>
         <button
-          onClick={() => navigate('/jobs')}
+          onClick={() => navigate("/jobs")}
           className="text-purple-600 hover:text-purple-700"
         >
           Back to Jobs
@@ -151,11 +165,21 @@ export default function JobApplicants() {
             <table className="w-full">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">Applicant</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">Contact</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">Applied Date</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">Actions</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
+                    Applicant
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
+                    Contact
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
+                    Applied Date
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -168,8 +192,12 @@ export default function JobApplicants() {
                             <User className="w-5 h-5 text-purple-600" />
                           </div>
                           <div>
-                            <div className="font-medium text-slate-900">{applicant.name}</div>
-                            <div className="text-sm text-slate-500">Applied for {job?.title}</div>
+                            <div className="font-medium text-slate-900">
+                              {applicant.name}
+                            </div>
+                            <div className="text-sm text-slate-500">
+                              Applied for {job?.title}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -209,19 +237,11 @@ export default function JobApplicants() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => navigate(`/applications/${applicant.id}`)}
-                            className="text-purple-600 hover:text-purple-800 px-3 py-1 rounded-lg hover:bg-purple-50"
+                            onClick={() => openModal(applicant)}
+                            className="text-purple-600 hover:text-purple-800 px-4 py-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors flex items-center gap-2"
                           >
-                            <FileText className="w-4 h-4" />
+                            <FileText className="w-4 h-4" /> Details
                           </button>
-                          {applicant.resumePath && (
-                            <button
-                              onClick={() => {/* Handle resume download */}}
-                              className="text-purple-600 hover:text-purple-800 px-3 py-1 rounded-lg hover:bg-purple-50"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -247,7 +267,14 @@ export default function JobApplicants() {
             </table>
           </div>
         </div>
+
+        {/* Candidate Details Modal */}
+        <CandidateDetailsModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          candidate={selectedCandidate}
+        />
       </div>
     </div>
   );
-} 
+}
