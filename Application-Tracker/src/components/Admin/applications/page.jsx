@@ -18,6 +18,7 @@ import {
 } from "../../../api/applications";
 import EmailModal from "./EmailModal";
 import CandidateDetailsModal from "./CandidateDetailsModal";
+import ActionDropdown from "./ActionDropdown";
 
 function Applications() {
   const [candidatesData, setCandidatesData] = useState([]);
@@ -469,19 +470,15 @@ function Applications() {
                       <FileText size={16} /> View
                     </button>
                   </td>
-                  <td className="px-6 py-4 relative dropdown-container">
+                  <td className="px-6 py-4 relative">
                     <button
-                      data-id={candidate.id}
+                      ref={(el) => {
+                        if (el) {
+                          el.dataset.id = candidate.id;
+                        }
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        const button = e.currentTarget;
-                        const tableBottom = document.querySelector('table').getBoundingClientRect().bottom;
-                        const buttonBottom = button.getBoundingClientRect().bottom;
-                        const spaceBelow = tableBottom - buttonBottom;
-                        
-                        // Store whether to show dropdown above or below
-                        button.dataset.position = spaceBelow < 200 ? 'above' : 'below';
-                        
                         setOpenDropdownId(
                           openDropdownId === candidate.id
                             ? null
@@ -505,89 +502,14 @@ function Applications() {
                       </svg>
                     </button>
 
-                    {openDropdownId === candidate.id && (
-                      <div 
-                        className={`
-                          absolute right-0 w-48 bg-white rounded-lg shadow-xl border border-slate-200 z-50
-                          ${document.querySelector(`[data-id="${candidate.id}"]`)?.dataset.position === 'above' 
-                            ? 'bottom-full mb-2' 
-                            : 'top-full mt-2'}
-                        `}
-                      >
-                        <div className="p-2 space-y-1">
-                          <button
-                            onClick={() =>
-                              handleStatusChange(candidate.id, "Received")
-                            }
-                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
-                          >
-                            Received
-                          </button>
-                                                    <button
-                            onClick={() =>
-                              handleStatusChange(candidate.id, "UnderReview")
-                            }
-                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
-                          >
-                            Under Review
-                          </button>
-                                                    <button
-                            onClick={() =>
-                              handleStatusChange(candidate.id, "Shortlisted")
-                            }
-                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
-                          >
-                            Shortlisted
-                          </button>
-                                                    <button
-                            onClick={() =>
-                              handleStatusChange(candidate.id, "Assessment")
-                            }
-                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
-                          >
-                            Assessment
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleStatusChange(candidate.id, "Interview")
-                            }
-                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
-                          >
-                            Interview
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleStatusChange(candidate.id, "Offer")
-                            }
-                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
-                          >
-                            Offer
-                          </button>
-                                                    <button
-                            onClick={() =>
-                              handleStatusChange(candidate.id, "Hired")
-                            }
-                            className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md"
-                          >
-                            Hired
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleStatusChange(candidate.id, "Reject")
-                            }
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-md"
-                          >
-                            Reject
-                          </button>
-                          <button
-                            onClick={() => handleDelete(candidate.id)}
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-md"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    <ActionDropdown
+                      isOpen={openDropdownId === candidate.id}
+                      onClose={() => setOpenDropdownId(null)}
+                      triggerButton={document.querySelector(`[data-id="${candidate.id}"]`)}
+                      onStatusChange={handleStatusChange}
+                      onDelete={handleDelete}
+                      candidateId={candidate.id}
+                    />
                   </td>
                 </tr>
               ))}
