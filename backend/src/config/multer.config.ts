@@ -26,7 +26,7 @@ export const multerConfig = {
     filename: (req, file, cb) => {
       try {
         // Create unique file name
-        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
         const ext = extname(file.originalname);
         const filename = `${uniqueSuffix}${ext}`;
         console.log('Generated filename:', filename);
@@ -41,7 +41,10 @@ export const multerConfig = {
     try {
       // Allow only specific file types
       if (!file.originalname.match(/\.(pdf|doc|docx)$/)) {
-        return cb(new Error('Only PDF, DOC, and DOCX files are allowed!'), false);
+        return cb(
+          new Error('Only PDF, DOC, and DOCX files are allowed!'),
+          false,
+        );
       }
       cb(null, true);
     } catch (error) {
@@ -52,4 +55,4 @@ export const multerConfig = {
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB max file size
   },
-}; 
+};

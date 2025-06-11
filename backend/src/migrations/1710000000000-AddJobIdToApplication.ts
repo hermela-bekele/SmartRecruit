@@ -1,16 +1,16 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddJobIdToApplication1710000000000 implements MigrationInterface {
-    name = 'AddJobIdToApplication1710000000000'
+  name = 'AddJobIdToApplication1710000000000';
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        // First, add the jobId column
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    // First, add the jobId column
+    await queryRunner.query(`
             ALTER TABLE "application" ADD COLUMN IF NOT EXISTS "jobId" uuid;
         `);
 
-        // Create a default job for applications without a matching job
-        await queryRunner.query(`
+    // Create a default job for applications without a matching job
+    await queryRunner.query(`
             INSERT INTO "job" (
                 id, 
                 title, 
@@ -36,8 +36,8 @@ export class AddJobIdToApplication1710000000000 implements MigrationInterface {
             RETURNING id;
         `);
 
-        // Update applications to link with existing jobs
-        await queryRunner.query(`
+    // Update applications to link with existing jobs
+    await queryRunner.query(`
             UPDATE "application" a
             SET "jobId" = (
                 SELECT j.id FROM "job" j 
@@ -47,8 +47,8 @@ export class AddJobIdToApplication1710000000000 implements MigrationInterface {
             WHERE "jobId" IS NULL;
         `);
 
-        // Update remaining applications with the default job
-        await queryRunner.query(`
+    // Update remaining applications with the default job
+    await queryRunner.query(`
             UPDATE "application" a
             SET "jobId" = (
                 SELECT id FROM "job"
@@ -57,18 +57,18 @@ export class AddJobIdToApplication1710000000000 implements MigrationInterface {
             )
             WHERE "jobId" IS NULL;
         `);
-    }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        // Remove jobId column
-        await queryRunner.query(`
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    // Remove jobId column
+    await queryRunner.query(`
             ALTER TABLE "application" DROP COLUMN IF EXISTS "jobId";
         `);
 
-        // Remove the default job
-        await queryRunner.query(`
+    // Remove the default job
+    await queryRunner.query(`
             DELETE FROM "job"
             WHERE description = 'Default position for applications without matching jobs';
         `);
-    }
-} 
+  }
+}

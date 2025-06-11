@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Job } from '../../jobs/entities/job.entity';
 
 @Entity()
@@ -12,7 +18,7 @@ export class Application {
   @Column()
   email: string;
 
-  @ManyToOne(() => Job, job => job.applications, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Job, (job) => job.applications, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'jobId' })
   job: Job;
 

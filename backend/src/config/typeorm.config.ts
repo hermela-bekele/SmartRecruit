@@ -24,13 +24,16 @@ export const dataSourceOptions: DataSourceOptions = {
   migrations: [path.join(projectRoot, 'dist', 'migrations', '*.js')],
   migrationsRun: true,
   synchronize: false,
-  logging: true
+  logging: true,
 };
 
 // Log the configuration for debugging
 console.log('Current directory:', __dirname);
 console.log('Project root:', projectRoot);
-console.log('Migrations path:', path.join(projectRoot, 'dist', 'migrations', '*.js'));
+console.log(
+  'Migrations path:',
+  path.join(projectRoot, 'dist', 'migrations', '*.js'),
+);
 
 const dataSource = new DataSource(dataSourceOptions);
-export default dataSource; 
+export default dataSource;

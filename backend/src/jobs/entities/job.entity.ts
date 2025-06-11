@@ -33,7 +33,7 @@ export class Job {
   @Column({ default: 'Active' })
   status: string;
 
-  @OneToMany(() => Application, application => application.job)
+  @OneToMany(() => Application, (application) => application.job)
   applications: Application[];
 
   @Column({ default: 0 })

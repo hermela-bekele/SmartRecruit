@@ -23,7 +23,8 @@ export class JobsService {
   }
 
   async findAll(query?: any): Promise<Job[]> {
-    const qb = this.jobsRepository.createQueryBuilder('job')
+    const qb = this.jobsRepository
+      .createQueryBuilder('job')
       .select([
         'job.id',
         'job.title',
@@ -35,7 +36,7 @@ export class JobsService {
         'job.postingDate',
         'job.expirationDate',
         'job.status',
-        'job.applicationCount'
+        'job.applicationCount',
       ]);
 
     if (query?.department) {

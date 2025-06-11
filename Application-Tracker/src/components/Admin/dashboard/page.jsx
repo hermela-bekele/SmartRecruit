@@ -2,13 +2,20 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import Sidebar from "../../sidebar";
 import { ChevronDown, Download, Plus, Filter } from "react-feather";
+import { getDashboardStats } from '../../../../src/services/dashboardService';
 
 function Dashboard() {
-
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dashboardData, setDashboardData] = useState({
+    stats: {},
+    openPositions: [],
+    pipelineData: [],
+  });
 
-    // Detect mobile screen size
+  // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
       const isMobile = window.innerWidth < 768;
@@ -21,89 +28,91 @@ function Dashboard() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Data definitions
-  const positions = [
-    {
-      title: "Senior Frontend Developer",
-      department: "Engineering",
-      count: 18,
-      days: 3,
-    },
-    { title: "Product Manager", department: "Product", count: 12, days: 5 },
-    { title: "UX Designer", department: "Design", count: 9, days: 7 },
-  ];
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const data = await getDashboardStats();
+        setDashboardData(data);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load dashboard data');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  const { stats, openPositions } = dashboardData;
+
+  // Calculate status percentages for the pie chart
+  const totalApplications = stats.totalApplications || 0;
   const statuses = [
-    { label: "Received", percentage: 38, color: "bg-purple-500" },
-    { label: "Under Review", percentage: 35, color: "bg-blue-500" },
-    { label: "Interview", percentage: 14, color: "bg-green-500" },
-    { label: "Offer", percentage: 7, color: "bg-yellow-500" },
-    { label: "Rejected", percentage: 6, color: "bg-rose-500" },
-  ];
-
-  const reports = [
-    {
-      title: "Monthly Hiring Report",
-      date: "2024-03-01",
-      type: "PDF",
-      size: "2.4MB",
+    { 
+      label: "Under Review", 
+      percentage: totalApplications ? Math.round((stats.totalUnderReview / totalApplications) * 100) : 0,
+      color: "bg-purple-500" 
     },
-    {
-      title: "Q1 Recruitment Analysis",
-      date: "2024-04-15",
-      type: "CSV",
-      size: "1.1MB",
+    { 
+      label: "Interview", 
+      percentage: totalApplications ? Math.round((stats.totalInterviews / totalApplications) * 100) : 0,
+      color: "bg-blue-500" 
     },
-    {
-      title: "Candidate Diversity Report",
-      date: "2024-04-20",
-      type: "PDF",
-      size: "3.2MB",
+    { 
+      label: "Offer", 
+      percentage: totalApplications ? Math.round((stats.totalOffers / totalApplications) * 100) : 0,
+      color: "bg-green-500" 
+    },
+    { 
+      label: "Hired", 
+      percentage: totalApplications ? Math.round((stats.totalHired / totalApplications) * 100) : 0,
+      color: "bg-yellow-500" 
+    },
+    { 
+      label: "Rejected", 
+      percentage: totalApplications ? Math.round((stats.totalRejected / totalApplications) * 100) : 0,
+      color: "bg-rose-500" 
     },
   ];
 
   const quickStats = [
     {
       title: "Avg. Time to Hire",
-      value: "28",
+      value: `${stats.avgTimeToHire || 0}`,
       change: "-2d",
       color: "bg-slate-800",
     },
     {
       title: "Cost per Hire",
-      value: "$4,200",
+      value: `$${stats.costPerHire || 0}`,
       change: "-12%",
       color: "bg-slate-800",
     },
     {
       title: "Offer Acceptance",
-      value: "82%",
+      value: `${stats.offerAcceptanceRate || 0}%`,
       change: "+5%",
       color: "bg-slate-800",
-    },
-  ];
-
-  const tableData = [
-    {
-      position: "Frontend Dev",
-      applied: 45,
-      interviewing: 12,
-      offered: 3,
-      rejected: 30,
-    },
-    {
-      position: "Product Manager",
-      applied: 32,
-      interviewing: 8,
-      offered: 2,
-      rejected: 22,
-    },
-    {
-      position: "UX Designer",
-      applied: 28,
-      interviewing: 6,
-      offered: 1,
-      rejected: 21,
     },
   ];
 
@@ -117,7 +126,7 @@ function Dashboard() {
         }`}
       >
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6  gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div className="flex-1">
             <h1 className="text-2xl md:text-4xl font-bold text-slate-900 mb-2">
               Talent Analytics Dashboard
@@ -145,20 +154,37 @@ function Dashboard() {
           {[
             {
               title: "Applications",
-              value: 24,
+              value: stats.totalApplications || 0,
               change: "+12%",
               color: "bg-purple-500",
             },
             {
-              title: "Interviews",
-              value: 8,
+              title: "Under Review",
+              value: stats.totalUnderReview || 0,
               change: "+5%",
               color: "bg-blue-500",
             },
-            { title: "Offers", value: 4, change: "+2%", color: "bg-green-500" },
+            { 
+              title: "Interviews", 
+              value: stats.totalInterviews || 0, 
+              change: "+2%", 
+              color: "bg-green-500" 
+            },
+            {
+              title: "Offers",
+              value: stats.totalOffers || 0,
+              change: "+3%",
+              color: "bg-yellow-500",
+            },
+            {
+              title: "Hired",
+              value: stats.totalHired || 0,
+              change: "+1%",
+              color: "bg-emerald-500",
+            },
             {
               title: "Rejected",
-              value: 12,
+              value: stats.totalRejected || 0,
               change: "-3%",
               color: "bg-rose-500",
             },
@@ -209,15 +235,15 @@ function Dashboard() {
                   Open Positions
                 </h2>
                 <p className="text-xs md:text-sm text-slate-500">
-                  7 active job postings
+                  {openPositions.length} active job postings
                 </p>
               </div>
-              <button className="text-purple-600 hover:bg-slate-50 px-2 py-1 rounded-lg text-sm md:text-base">
+              <Link to="/admin/jobs" className="text-purple-600 hover:bg-slate-50 px-2 py-1 rounded-lg text-sm md:text-base">
                 View All →
-              </button>
+              </Link>
             </div>
             <div className="space-y-2 md:space-y-4">
-              {positions.map((position, index) => (
+              {openPositions.map((position, index) => (
                 <div
                   key={index}
                   className="p-3 md:p-4 bg-slate-50/50 rounded-lg hover:bg-slate-100/30 transition-colors"
@@ -285,18 +311,18 @@ function Dashboard() {
                 className="w-32 h-32 md:w-40 md:h-40 rounded-full relative"
                 style={{
                   background: `conic-gradient(
-                    #8b5cf6 0% 38%,
-                    #3b82f6 38% 73%,
-                    #22c55e 73% 87%,
-                    #eab308 87% 94%,
-                    #ef4444 94% 100%
+                    ${statuses.map((status, index) => {
+                      const start = index === 0 ? 0 : statuses.slice(0, index).reduce((acc, s) => acc + s.percentage, 0);
+                      const end = start + status.percentage;
+                      return `${status.color.replace('bg-', '#')} ${start}% ${end}%`;
+                    }).join(', ')}
                   )`,
                 }}
               >
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 bg-white rounded-full shadow-sm flex items-center justify-center">
                   <div className="text-center">
                     <div className="text-lg md:text-2xl font-bold text-slate-900">
-                      127
+                      {totalApplications}
                     </div>
                     <div className="text-xs md:text-sm text-slate-500">Total</div>
                   </div>
@@ -332,90 +358,6 @@ function Dashboard() {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* Data Table Section */}
-        <div className="bg-white rounded-xl shadow-sm md:shadow-lg border border-slate-200/50 mb-6 md:mb-8">
-          <div className="p-4 md:p-6 border-b border-slate-200">
-            <h2 className="text-lg md:text-xl font-bold text-slate-900">
-              Candidate Pipeline
-            </h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px]">
-              <thead className="bg-slate-50 text-slate-600 text-xs md:text-sm">
-                <tr>
-                  <th className="px-4 md:px-6 py-3 text-left">Position</th>
-                  <th className="px-4 md:px-6 py-3 text-right">Applied</th>
-                  <th className="px-4 md:px-6 py-3 text-right">Interviewing</th>
-                  <th className="px-4 md:px-6 py-3 text-right">Offered</th>
-                  <th className="px-4 md:px-6 py-3 text-right">Rejected</th>
-                  <th className="px-4 md:px-6 py-3 text-right">Conversion</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tableData.map((row, index) => (
-                  <tr
-                    key={index}
-                    className="border-t border-slate-100 hover:bg-slate-50"
-                  >
-                    <td className="px-4 md:px-6 py-3 font-medium text-sm md:text-base">
-                      {row.position}
-                    </td>
-                    <td className="px-4 md:px-6 py-3 text-right">
-                      {row.applied}
-                    </td>
-                    <td className="px-4 md:px-6 py-3 text-right">
-                      {row.interviewing}
-                    </td>
-                    <td className="px-4 md:px-6 py-3 text-right">
-                      {row.offered}
-                    </td>
-                    <td className="px-4 md:px-6 py-3 text-right">
-                      {row.rejected}
-                    </td>
-                    <td className="px-4 md:px-6 py-3 text-right text-green-600 font-medium">
-                      {((row.offered / row.applied) * 100).toFixed(1)}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Recent Reports Section */}
-        <div className="bg-white rounded-xl shadow-sm md:shadow-lg border border-slate-200/50">
-          <div className="p-4 md:p-6 border-b border-slate-200">
-            <h2 className="text-lg md:text-xl font-bold text-slate-900">
-              Recent Reports
-            </h2>
-          </div>
-          <div className="p-4 md:p-6 grid gap-2 md:gap-4">
-            {reports.map((report, index) => (
-              <div
-                key={index}
-                className="flex flex-col md:flex-row items-start md:items-center justify-between p-3 md:p-4 hover:bg-slate-50 rounded-lg"
-              >
-                <div className="flex-1 mb-2 md:mb-0">
-                  <h3 className="text-sm md:text-base font-medium text-slate-900">
-                    {report.title}
-                  </h3>
-                  <p className="text-xs md:text-sm text-slate-500">
-                    {report.date} • {report.type}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                  <span className="text-xs md:text-sm text-slate-500">
-                    {report.size}
-                  </span>
-                  <button className="text-purple-600 hover:bg-slate-100 p-1 md:p-2 rounded-lg">
-                    <Download size={16} className="md:w-5 md:h-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>

@@ -1,4 +1,10 @@
-import { IsString, IsEmail, IsOptional, IsUUID, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  IsUUID,
+  IsArray,
+} from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
 export class CreateApplicationDto {

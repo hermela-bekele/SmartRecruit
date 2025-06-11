@@ -22,22 +22,24 @@ export class ApplicationsService {
 
   async create(
     createApplicationDto: CreateApplicationDto,
-    file?: Express.Multer.File
+    file?: Express.Multer.File,
   ): Promise<Application> {
     try {
       console.log('Creating application with file:', {
         fileExists: !!file,
-        fileDetails: file ? {
-          originalname: file.originalname,
-          filename: file.filename,
-          mimetype: file.mimetype,
-          size: file.size,
-        } : null,
+        fileDetails: file
+          ? {
+              originalname: file.originalname,
+              filename: file.filename,
+              mimetype: file.mimetype,
+              size: file.size,
+            }
+          : null,
       });
-      
+
       // Get the job using the jobId from the DTO
       const job = await this.jobsService.findOne(createApplicationDto.jobId);
-      
+
       // Handle file path if file was uploaded
       let resumePath: string | null = null;
       if (file && file.filename) {
@@ -68,7 +70,7 @@ export class ApplicationsService {
       application.jobId = job.id;
       application.status = 'Received';
       application.timeline = [
-        { date: new Date().toISOString(), status: 'Received' }
+        { date: new Date().toISOString(), status: 'Received' },
       ];
 
       console.log('Saving application with data:', {
@@ -80,7 +82,8 @@ export class ApplicationsService {
       });
 
       // Save the application
-      const savedApplication = await this.applicationsRepository.save(application);
+      const savedApplication =
+        await this.applicationsRepository.save(application);
       await this.jobsService.incrementApplicationCount(job.id);
 
       console.log('Application saved successfully:', {
@@ -94,7 +97,7 @@ export class ApplicationsService {
         error: error.message,
         stack: error.stack,
       });
-      
+
       // If there was an error and a file was uploaded, try to delete it
       if (file && file.filename) {
         try {
@@ -104,10 +107,13 @@ export class ApplicationsService {
             console.log('Cleaned up file after error:', filePath);
           }
         } catch (deleteError) {
-          console.error('Error deleting file after failed application:', deleteError);
+          console.error(
+            'Error deleting file after failed application:',
+            deleteError,
+          );
         }
       }
-      
+
       throw error;
     }
   }
@@ -131,10 +137,16 @@ export class ApplicationsService {
     return application;
   }
 
-  async update(id: string, updateApplicationDto: UpdateApplicationDto): Promise<Application> {
+  async update(
+    id: string,
+    updateApplicationDto: UpdateApplicationDto,
+  ): Promise<Application> {
     const application = await this.findOne(id);
-    
-    if (updateApplicationDto.status && updateApplicationDto.status !== application.status) {
+
+    if (
+      updateApplicationDto.status &&
+      updateApplicationDto.status !== application.status
+    ) {
       application.timeline = [
         ...(application.timeline || []),
         { date: new Date().toISOString(), status: updateApplicationDto.status },
@@ -148,7 +160,7 @@ export class ApplicationsService {
   async remove(id: string): Promise<void> {
     const application = await this.findOne(id);
     const jobId = application.job.id;
-    
+
     await this.applicationsRepository.remove(application);
     await this.jobsService.decrementApplicationCount(jobId);
   }
@@ -186,7 +198,8 @@ export class ApplicationsService {
       status: status,
     });
 
-    const updatedApplication = await this.applicationsRepository.save(application);
+    const updatedApplication =
+      await this.applicationsRepository.save(application);
 
     // Send email if content is provided
     if (emailContent && emailSubject) {

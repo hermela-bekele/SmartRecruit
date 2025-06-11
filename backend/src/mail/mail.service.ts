@@ -56,7 +56,7 @@ export class MailService {
       greetingTimeout: 10000,
       socketTimeout: 10000,
       // Add envelope sender configuration
-/*       envelope: {
+      /*       envelope: {
         from: smtpUser, // Use the authenticated Gmail account for SMTP
         to: null, // Will be set per email
       }, */

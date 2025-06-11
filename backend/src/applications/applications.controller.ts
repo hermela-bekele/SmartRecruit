@@ -39,11 +39,13 @@ export class ApplicationsController {
     try {
       console.log('Received application data:', {
         dto: createDto,
-        file: file ? {
-          originalname: file.originalname,
-          mimetype: file.mimetype,
-          size: file.size,
-        } : null,
+        file: file
+          ? {
+              originalname: file.originalname,
+              mimetype: file.mimetype,
+              size: file.size,
+            }
+          : null,
       });
 
       if (!file) {
