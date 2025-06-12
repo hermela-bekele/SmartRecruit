@@ -31,6 +31,7 @@ function Jobs() {
     department: "",
     status: "",
     location: "",
+    company: "",
     postedWithin: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
@@ -210,6 +211,7 @@ const handleReopenPosition = async (id) => {
   const departments = [...new Set(jobs.map((job) => job.department))];
   const statuses = [...new Set(jobs.map((job) => job.status))];
   const locations = [...new Set(jobs.map((job) => job.location))];
+  const companies = [...new Set(jobs.map((job) => job.company))];
   const postedWithinOptions = [
     { label: "Last 7 days", value: 7 },
     { label: "Last 30 days", value: 30 },
@@ -228,12 +230,14 @@ const handleReopenPosition = async (id) => {
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.status.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesFilters =
       (!filters.department || job.department === filters.department) &&
       (!filters.status || job.status === filters.status) &&
       (!filters.location || job.location === filters.location) &&
+      (!filters.company || job.company === filters.company) &&
       (!filters.postedWithin ||
         isWithinDateRange(job.postingDate, filters.postedWithin));
 
@@ -255,6 +259,7 @@ const handleReopenPosition = async (id) => {
       department: "",
       status: "",
       location: "",
+      company: "",
       postedWithin: "",
     });
   };
@@ -418,6 +423,19 @@ const handleReopenPosition = async (id) => {
             {locations.map((location) => (
               <option key={location} value={location}>
                 {location}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="px-4 py-2 border border-slate-200 rounded-lg bg-white text-slate-700"
+            value={filters.company}
+            onChange={(e) => handleFilterChange("company", e.target.value)}
+          >
+            <option value="">All Companies</option>
+            {companies.map((company) => (
+              <option key={company} value={company}>
+                {company}
               </option>
             ))}
           </select>

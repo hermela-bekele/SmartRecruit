@@ -28,6 +28,7 @@ function Applications() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedPosition, setSelectedPosition] = useState("");
+  const [selectedCompany, setSelectedCompany] = useState("");
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("");
@@ -87,6 +88,7 @@ function Applications() {
   // Get unique statuses and positions for filter options
   const statusOptions = [...new Set(candidatesData.map((c) => c.status))];
   const positionOptions = [...new Set(candidatesData.map((c) => c.position))];
+  const companyOptions = [...new Set(candidatesData.map((c) => c.company))];
 
   // Filter candidates based on search and filters
   const filteredCandidates = candidatesData.filter((candidate) => {
@@ -105,7 +107,11 @@ function Applications() {
       ? candidate.position === selectedPosition
       : true;
 
-    return matchesSearch && matchesStatus && matchesPosition;
+    const matchesCompany = selectedCompany
+      ? candidate.company === selectedCompany
+      : true;
+
+    return matchesSearch && matchesStatus && matchesPosition && matchesCompany;
   });
 
   // Calculate pagination indexes
@@ -378,6 +384,26 @@ function Applications() {
               {positionOptions.map((position, index) => (
                 <option key={index} value={position}>
                   {position}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={16}
+              className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"
+            />
+          </div>
+
+          {/* Company Filter */}
+          <div className="relative">
+            <select
+              value={selectedCompany}
+              onChange={(e) => setSelectedCompany(e.target.value)}
+              className="w-48 pl-3 pr-8 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-slate-900 appearance-none"
+            >
+              <option value="">All Companies</option>
+              {companyOptions.map((company, index) => (
+                <option key={index} value={company}>
+                  {company}
                 </option>
               ))}
             </select>

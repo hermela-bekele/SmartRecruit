@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Application } from './entities/application.entity';
@@ -20,11 +20,35 @@ export class ApplicationsService {
     private jobsService: JobsService,
   ) {}
 
+  private async checkDuplicateApplication(email: string, jobId: string): Promise<boolean> {
+    const existingApplication = await this.applicationsRepository.findOne({
+      where: { email, jobId }
+    });
+    return !!existingApplication;
+  }
+
   async create(
     createApplicationDto: CreateApplicationDto,
     file?: Express.Multer.File,
   ): Promise<Application> {
     try {
+      // Check for duplicate application
+      const isDuplicate = await this.checkDuplicateApplication(
+        createApplicationDto.email,
+        createApplicationDto.jobId
+      );
+
+      if (isDuplicate) {
+        throw new BadRequestException(`The email address ${createApplicationDto.email} has already been used to apply for this position`);
+      }
+
+      // Get the job using the jobId from the DTO
+      const job = await this.jobsService.findOne(createApplicationDto.jobId);
+
+      if (!job) {
+        throw new Error('Job not found');
+      }
+
       console.log('Creating application with file:', {
         fileExists: !!file,
         fileDetails: file
@@ -36,9 +60,6 @@ export class ApplicationsService {
             }
           : null,
       });
-
-      // Get the job using the jobId from the DTO
-      const job = await this.jobsService.findOne(createApplicationDto.jobId);
 
       // Handle file path if file was uploaded
       let resumePath: string | null = null;
