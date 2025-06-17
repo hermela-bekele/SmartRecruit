@@ -50,6 +50,12 @@ function Applications() {
   const [currentPage, setCurrentPage] = useState(1);
   const [candidatesPerPage] = useState(5);
 
+  // Sort state
+  const [sortConfig, setSortConfig] = useState({
+    key: 'appliedDate',
+    direction: 'desc'
+  });
+
   // Load templates from localStorage
   useEffect(() => {
     const savedTemplates = JSON.parse(localStorage.getItem('emailTemplates')) || {
@@ -114,14 +120,47 @@ function Applications() {
     return matchesSearch && matchesStatus && matchesPosition && matchesCompany;
   });
 
+  // Sort candidates based on sortConfig
+  const sortedCandidates = [...filteredCandidates].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+
+    let aValue = a[sortConfig.key];
+    let bValue = b[sortConfig.key];
+
+    // Handle nested properties
+    if (sortConfig.key === 'appliedDate') {
+      aValue = a.timeline?.[0]?.date || '';
+      bValue = b.timeline?.[0]?.date || '';
+    }
+
+    // Handle string comparison
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return sortConfig.direction === 'asc' 
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    }
+
+    // Handle date comparison
+    if (sortConfig.key === 'appliedDate') {
+      return sortConfig.direction === 'asc'
+        ? new Date(aValue) - new Date(bValue)
+        : new Date(bValue) - new Date(aValue);
+    }
+
+    // Handle numeric comparison
+    return sortConfig.direction === 'asc'
+      ? aValue - bValue
+      : bValue - aValue;
+  });
+
   // Calculate pagination indexes
   const indexOfLastCandidate = currentPage * candidatesPerPage;
   const indexOfFirstCandidate = indexOfLastCandidate - candidatesPerPage;
-  const currentCandidates = filteredCandidates.slice(
+  const currentCandidates = sortedCandidates.slice(
     indexOfFirstCandidate,
     indexOfLastCandidate
   );
-  const totalPages = Math.ceil(filteredCandidates.length / candidatesPerPage);
+  const totalPages = Math.ceil(sortedCandidates.length / candidatesPerPage);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -246,7 +285,7 @@ function Applications() {
     ];
 
     // Transform the data into CSV format
-    const csvData = filteredCandidates.map(candidate => {
+    const csvData = sortedCandidates.map(candidate => {
       return [
         candidate.name,
         candidate.email,
@@ -290,6 +329,13 @@ function Applications() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handleSort = (key) => {
+    setSortConfig(current => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+    }));
   };
 
   if (loading) {
@@ -350,6 +396,27 @@ function Applications() {
             <Search
               size={18}
               className="absolute left-3 top-3.5 text-slate-400"
+            />
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="relative">
+            <select
+              value={`${sortConfig.key}-${sortConfig.direction}`}
+              onChange={(e) => {
+                const [key, direction] = e.target.value.split('-');
+                setSortConfig({ key, direction });
+              }}
+              className="w-48 pl-3 pr-8 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-slate-900 appearance-none"
+            >
+              <option value="appliedDate-desc">Newest First</option>
+              <option value="appliedDate-asc">Oldest First</option>
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="name-desc">Name (Z-A)</option>
+            </select>
+            <ChevronDown
+              size={16}
+              className="absolute right-3 top-3.5 text-slate-400 pointer-events-none"
             />
           </div>
 
@@ -420,18 +487,32 @@ function Applications() {
             <thead className="bg-slate-50">
               <tr>
                 {[
-                  "Candidate",
-                  "Position",
-                  "Company",
-                  "Status",
-                  "Details",
-                  "Action",
+                  { label: "Candidate", key: "name" },
+                  { label: "Position", key: "position" },
+                  { label: "Company", key: "company" },
+                  { label: "Status", key: null },
+                  { label: "Details", key: null },
+                  { label: "Action", key: null },
                 ].map((header) => (
                   <th
-                    key={header}
+                    key={header.label}
                     className="px-6 py-4 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider"
                   >
-                    {header}
+                    {header.key ? (
+                      <button
+                        onClick={() => handleSort(header.key)}
+                        className="flex items-center gap-1 hover:text-purple-600"
+                      >
+                        {header.label}
+                        {sortConfig.key === header.key && (
+                          <span className="text-purple-600">
+                            {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                          </span>
+                        )}
+                      </button>
+                    ) : (
+                      header.label
+                    )}
                   </th>
                 ))}
               </tr>
@@ -564,12 +645,12 @@ function Applications() {
         <div className="mt-6 bg-white px-6 py-4 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex justify-between items-center">
             <span className="text-sm text-slate-600">
-              {filteredCandidates.length === 0
+              {sortedCandidates.length === 0
                 ? "No applications found"
                 : `Showing ${indexOfFirstCandidate + 1} to ${Math.min(
                     indexOfLastCandidate,
-                    filteredCandidates.length
-                  )} of ${filteredCandidates.length} candidates`}
+                    sortedCandidates.length
+                  )} of ${sortedCandidates.length} candidates`}
             </span>
             
             <div className="flex gap-2">
