@@ -1,35 +1,17 @@
-import axios from 'axios';
-import authService from './auth.service';
+import api from './api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-const SETTINGS_API = `${API_URL}/settings`;
-
-// Create axios instance with auth header interceptor
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  withCredentials: true
-});
-
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const user = authService.getCurrentUser();
-  if (user?.access_token) {
-    config.headers.Authorization = `Bearer ${user.access_token}`;
-  }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
+const SETTINGS_API = '/settings';
 
 class SettingsService {
   async updateProfile(profileData) {
     try {
+      console.log('SettingsService: Updating profile with data:', profileData);
+      console.log('SettingsService: Making request to:', `${SETTINGS_API}/profile`);
       const response = await api.put(`${SETTINGS_API}/profile`, profileData);
+      console.log('SettingsService: Profile update response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('SettingsService: Profile update error:', error);
       throw error.response?.data || error;
     }
   }
@@ -61,15 +43,6 @@ class SettingsService {
     }
   }
 
-  async disable2FA() {
-    try {
-      const response = await api.post(`${SETTINGS_API}/2fa/disable`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  }
-
   async verify2FA(code) {
     try {
       const response = await api.post(`${SETTINGS_API}/2fa/verify`, { code });
@@ -79,9 +52,18 @@ class SettingsService {
     }
   }
 
+  async disable2FA() {
+    try {
+      const response = await api.post(`${SETTINGS_API}/2fa/disable`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  }
+
   async getSettings() {
     try {
-      const response = await api.get(SETTINGS_API);
+      const response = await api.get(`${SETTINGS_API}/profile`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

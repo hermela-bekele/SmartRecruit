@@ -1,12 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import settingsService from '../../../services/settings.service';
+import { toast } from 'react-toastify';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function NotificationsTab() {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState({
     newApplication: true,
     statusChange: true,
     interviewReminders: true,
     weeklyDigest: false
   });
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load notification preferences from user data
+  useEffect(() => {
+    if (user?.user) {
+      setNotifications({
+        newApplication: user.user.newApplicationNotifications ?? true,
+        statusChange: user.user.statusChangeNotifications ?? true,
+        interviewReminders: user.user.interviewReminderNotifications ?? true,
+        weeklyDigest: user.user.weeklyDigestNotifications ?? false
+      });
+    }
+    setIsLoading(false);
+  }, [user]);
 
   const handleToggle = (notificationType) => {
     setNotifications(prev => ({
@@ -15,12 +34,39 @@ export default function NotificationsTab() {
     }));
   };
 
-    const [isSaving, setIsSaving] = useState(false);
-
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 1500);
+    try {
+      const notificationSettings = {
+        newApplicationNotifications: notifications.newApplication,
+        statusChangeNotifications: notifications.statusChange,
+        interviewReminderNotifications: notifications.interviewReminders,
+        weeklyDigestNotifications: notifications.weeklyDigest
+      };
+
+      await settingsService.updateNotifications(notificationSettings);
+      toast.success('Notification preferences saved successfully');
+    } catch (error) {
+      console.error('Error saving notification preferences:', error);
+      toast.error(error.message || 'Failed to save notification preferences');
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br bg-white p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br bg-white p-8">
@@ -118,15 +164,15 @@ export default function NotificationsTab() {
             </div>
           </div>
 
-              <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="px-6 py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
-                >
-                  {isSaving ? "Saving..." : "Save Preferences"}
-                </button>
-              </div>
+          <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-6 py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+            >
+              {isSaving ? "Saving..." : "Save Preferences"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

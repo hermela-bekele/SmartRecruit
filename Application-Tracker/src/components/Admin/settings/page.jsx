@@ -9,6 +9,8 @@ import Sidebar from "../../sidebar";
 import NotificationsTab from "./notificationTab"; 
 import SecurityTab from "./securityTab";
 import { useAuth } from "../../../contexts/AuthContext";
+import settingsService from "../../../services/settings.service";
+import { toast } from "react-toastify";
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -34,8 +36,8 @@ export default function SettingsPage() {
       const [firstName = "", lastName = ""] = (user.user.name || "").split(" ");
       setFormData(prev => ({
         ...prev,
-        firstName,
-        lastName,
+        firstName: user.user.firstName || firstName,
+        lastName: user.user.lastName || lastName,
         email: user.user.email || "",
         jobTitle: user.user.jobTitle || "",
         department: user.user.department || "",
@@ -76,13 +78,43 @@ export default function SettingsPage() {
   }, []);
 
   const handleSave = async () => {
+    console.log('handleSave function called');
+    
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    console.log('Auth check:', {
+      hasToken: !!token,
+      hasUser: !!user,
+      tokenLength: token ? token.length : 0
+    });
+    
+    if (!token) {
+      toast.error('No authentication token found. Please log in again.');
+      return;
+    }
+    
     setIsSaving(true);
     try {
-      // TODO: Implement API call to update user information
-      console.log('Saving user data:', formData);
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulated delay
+      const profileData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        jobTitle: formData.jobTitle,
+        department: formData.department,
+        companyName: formData.companyName,
+        website: formData.website,
+        address: formData.address,
+        companySize: formData.companySize
+      };
+
+      console.log('Sending profile data:', profileData);
+      console.log('About to call settingsService.updateProfile');
+      const result = await settingsService.updateProfile(profileData);
+      console.log('Profile update result:', result);
+      toast.success('Profile updated successfully');
     } catch (error) {
       console.error('Error saving user data:', error);
+      toast.error(error.message || 'Failed to update profile');
     } finally {
       setIsSaving(false);
     }
@@ -142,9 +174,10 @@ export default function SettingsPage() {
                       type="email"
                       name="email"
                       value={formData.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 transition-all"
                     />
+                    <p className="text-sm text-gray-500 mt-1">Email cannot be changed from this page</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
