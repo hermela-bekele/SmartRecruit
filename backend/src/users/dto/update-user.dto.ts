@@ -1,4 +1,10 @@
-import { IsEmail, IsOptional, IsEnum, IsString, IsBoolean } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsEnum,
+  IsString,
+  IsBoolean,
+} from 'class-validator';
 import { UserRole } from '../../shared/user-role.enum';
 
 export class UpdateUserDto {

@@ -182,9 +182,14 @@ export class UsersService {
     }
   }
 
-  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<User> {
+  async updateProfile(
+    userId: string,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<User> {
     try {
-      const user = await this.usersRepository.findOne({ where: { id: userId } });
+      const user = await this.usersRepository.findOne({
+        where: { id: userId },
+      });
 
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
@@ -193,7 +198,7 @@ export class UsersService {
       // Update only profile fields
       Object.assign(user, updateProfileDto);
       const savedUser = await this.usersRepository.save(user);
-      
+
       // Return user without sensitive data
       const { password, twoFactorSecret, ...result } = savedUser;
       return result as User;
@@ -203,7 +208,10 @@ export class UsersService {
     }
   }
 
-  async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<void> {
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<void> {
     try {
       const user = await this.usersRepository
         .createQueryBuilder('user')
@@ -226,7 +234,9 @@ export class UsersService {
       }
 
       // Hash new password
-      const hashedNewPassword = await this.hashPassword(changePasswordDto.newPassword);
+      const hashedNewPassword = await this.hashPassword(
+        changePasswordDto.newPassword,
+      );
 
       // Update password
       user.password = hashedNewPassword;
@@ -238,9 +248,14 @@ export class UsersService {
     }
   }
 
-  async updateNotifications(userId: string, updateNotificationsDto: UpdateNotificationsDto): Promise<User> {
+  async updateNotifications(
+    userId: string,
+    updateNotificationsDto: UpdateNotificationsDto,
+  ): Promise<User> {
     try {
-      const user = await this.usersRepository.findOne({ where: { id: userId } });
+      const user = await this.usersRepository.findOne({
+        where: { id: userId },
+      });
 
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
@@ -249,7 +264,7 @@ export class UsersService {
       // Update notification preferences
       Object.assign(user, updateNotificationsDto);
       const savedUser = await this.usersRepository.save(user);
-      
+
       // Return user without sensitive data
       const { password, twoFactorSecret, ...result } = savedUser;
       return result as User;
@@ -261,7 +276,9 @@ export class UsersService {
 
   async enable2FA(userId: string): Promise<{ secret: string; qrCode: string }> {
     try {
-      const user = await this.usersRepository.findOne({ where: { id: userId } });
+      const user = await this.usersRepository.findOne({
+        where: { id: userId },
+      });
 
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
@@ -269,7 +286,7 @@ export class UsersService {
 
       // Generate a secret for 2FA (in a real implementation, you'd use a library like speakeasy)
       const secret = this.generateSecret();
-      
+
       // Update user with 2FA secret (but don't enable yet until verified)
       user.twoFactorSecret = secret;
       await this.usersRepository.save(user);
@@ -286,14 +303,18 @@ export class UsersService {
 
   async verifyAndEnable2FA(userId: string, code: string): Promise<void> {
     try {
-      const user = await this.usersRepository.findOne({ where: { id: userId } });
+      const user = await this.usersRepository.findOne({
+        where: { id: userId },
+      });
 
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
 
       if (!user.twoFactorSecret) {
-        throw new BadRequestException('2FA secret not found. Please enable 2FA first.');
+        throw new BadRequestException(
+          '2FA secret not found. Please enable 2FA first.',
+        );
       }
 
       // Verify the code (in a real implementation, you'd use a library like speakeasy)
@@ -314,7 +335,9 @@ export class UsersService {
 
   async disable2FA(userId: string): Promise<void> {
     try {
-      const user = await this.usersRepository.findOne({ where: { id: userId } });
+      const user = await this.usersRepository.findOne({
+        where: { id: userId },
+      });
 
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
@@ -332,7 +355,10 @@ export class UsersService {
   // Helper methods for 2FA (simplified implementations)
   private generateSecret(): string {
     // In a real implementation, use speakeasy.generateSecret()
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    return (
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    );
   }
 
   private generateQRCode(secret: string, email: string): string {

@@ -6,4 +6,4 @@ import { UsersModule } from '../users/users.module';
   imports: [UsersModule],
   controllers: [SettingsController],
 })
-export class SettingsModule {} 
+export class SettingsModule {}

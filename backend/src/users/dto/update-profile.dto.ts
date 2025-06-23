@@ -32,4 +32,4 @@ export class UpdateProfileDto {
   @IsString()
   @IsOptional()
   companySize?: string;
-} 
+}

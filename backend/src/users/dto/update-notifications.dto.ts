@@ -16,4 +16,4 @@ export class UpdateNotificationsDto {
   @IsBoolean()
   @IsOptional()
   weeklyDigestNotifications?: boolean;
-} 
+}

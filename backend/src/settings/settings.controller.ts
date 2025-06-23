@@ -24,14 +24,20 @@ export class SettingsController {
 
   @Put('profile')
   @UseGuards(JwtAuthGuard)
-  async updateProfile(@Request() req, @Body() updateProfileDto: UpdateProfileDto) {
+  async updateProfile(
+    @Request() req,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
     console.log('SettingsController: Profile update request received');
     console.log('SettingsController: User ID:', req.user.sub);
     console.log('SettingsController: Profile data:', updateProfileDto);
-    
+
     const userId = req.user.sub;
-    const updatedUser = await this.usersService.updateProfile(userId, updateProfileDto);
-    
+    const updatedUser = await this.usersService.updateProfile(
+      userId,
+      updateProfileDto,
+    );
+
     console.log('SettingsController: Profile update successful:', updatedUser);
     return {
       message: 'Profile updated successfully',
@@ -41,7 +47,10 @@ export class SettingsController {
 
   @Put('password')
   @UseGuards(JwtAuthGuard)
-  async changePassword(@Request() req, @Body() changePasswordDto: ChangePasswordDto) {
+  async changePassword(
+    @Request() req,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
     const userId = req.user.sub;
     await this.usersService.changePassword(userId, changePasswordDto);
     return {
@@ -51,9 +60,15 @@ export class SettingsController {
 
   @Put('notifications')
   @UseGuards(JwtAuthGuard)
-  async updateNotifications(@Request() req, @Body() updateNotificationsDto: UpdateNotificationsDto) {
+  async updateNotifications(
+    @Request() req,
+    @Body() updateNotificationsDto: UpdateNotificationsDto,
+  ) {
     const userId = req.user.sub;
-    const updatedUser = await this.usersService.updateNotifications(userId, updateNotificationsDto);
+    const updatedUser = await this.usersService.updateNotifications(
+      userId,
+      updateNotificationsDto,
+    );
     return {
       message: 'Notification preferences updated successfully',
       user: updatedUser,
@@ -91,4 +106,4 @@ export class SettingsController {
       message: '2FA disabled successfully',
     };
   }
-} 
+}

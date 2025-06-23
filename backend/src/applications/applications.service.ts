@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Application } from './entities/application.entity';
@@ -20,9 +24,12 @@ export class ApplicationsService {
     private jobsService: JobsService,
   ) {}
 
-  private async checkDuplicateApplication(email: string, jobId: string): Promise<boolean> {
+  private async checkDuplicateApplication(
+    email: string,
+    jobId: string,
+  ): Promise<boolean> {
     const existingApplication = await this.applicationsRepository.findOne({
-      where: { email, jobId }
+      where: { email, jobId },
     });
     return !!existingApplication;
   }
@@ -35,11 +42,13 @@ export class ApplicationsService {
       // Check for duplicate application
       const isDuplicate = await this.checkDuplicateApplication(
         createApplicationDto.email,
-        createApplicationDto.jobId
+        createApplicationDto.jobId,
       );
 
       if (isDuplicate) {
-        throw new BadRequestException(`The email address ${createApplicationDto.email} has already been used to apply for this position`);
+        throw new BadRequestException(
+          `The email address ${createApplicationDto.email} has already been used to apply for this position`,
+        );
       }
 
       // Get the job using the jobId from the DTO
