@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { isDemoMode } from '../utils/demoMode';
+import demoStore from '../demo/demoStore';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const AUTH_API = `${API_URL}/auth`;
@@ -6,6 +8,13 @@ const AUTH_API = `${API_URL}/auth`;
 class AuthService {
   async login(email, password) {
     try {
+      if (isDemoMode()) {
+        const response = await demoStore.login(email, password);
+        localStorage.setItem('user', JSON.stringify(response));
+        localStorage.setItem('token', response.access_token);
+        return response;
+      }
+
       console.log('Attempting login with:', { email });
       const response = await axios.post(`${AUTH_API}/login`, {
         email,
@@ -56,6 +65,10 @@ class AuthService {
 
   async requestPasswordReset(email) {
     try {
+      if (isDemoMode()) {
+        await demoStore.requestPasswordReset(email);
+        return;
+      }
       await axios.post(`${AUTH_API}/reset-password`, { email });
     } catch (error) {
       throw this.handleError(error);
@@ -64,18 +77,16 @@ class AuthService {
 
   handleError(error) {
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
       const message = error.response.data.message || 'An error occurred';
       return new Error(message);
+    } else if (error.message) {
+      return new Error(error.message);
     } else if (error.request) {
-      // The request was made but no response was received
       return new Error('No response from server');
     } else {
-      // Something happened in setting up the request that triggered an Error
       return new Error('Error setting up request');
     }
   }
 }
 
-export default new AuthService(); 
+export default new AuthService();

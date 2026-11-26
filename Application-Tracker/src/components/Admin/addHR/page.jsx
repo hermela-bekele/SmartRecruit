@@ -4,6 +4,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { getAuthHeader } from "../../../utils/auth";
+import { isDemoMode } from "../../../utils/demoMode";
+import demoStore from "../../../demo/demoStore";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -36,6 +38,11 @@ const AddHrPage = () => {
 
     try {
       console.log('Fetching users...');
+      if (isDemoMode()) {
+        const users = await demoStore.getUsers();
+        setExistingUsers(users);
+        return;
+      }
       const response = await axios.get(`${API_URL}/users`, { headers });
       console.log('Users response:', response.data);
       setExistingUsers(response.data);
@@ -45,7 +52,7 @@ const AddHrPage = () => {
         toast.error('Session expired. Please login again.');
         navigate('/login');
       } else {
-        toast.error(error.response?.data?.message || 'Failed to fetch existing users');
+        toast.error(error.response?.data?.message || error.message || 'Failed to fetch existing users');
       }
     }
   };
@@ -81,16 +88,20 @@ const AddHrPage = () => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         console.log('Deleting user with ID:', userId);
-        await axios.delete(`${API_URL}/users/${userId}`, { headers });
+        if (isDemoMode()) {
+          await demoStore.deleteUser(userId);
+        } else {
+          await axios.delete(`${API_URL}/users/${userId}`, { headers });
+        }
         toast.success('User deleted successfully');
-        fetchUsers(); // Refresh the list
+        fetchUsers();
       } catch (error) {
         console.error('Error deleting user:', error.response || error);
         if (error.response?.status === 401) {
           toast.error('Session expired. Please login again.');
           navigate('/login');
         } else {
-          toast.error(error.response?.data?.message || 'Failed to delete user');
+          toast.error(error.response?.data?.message || error.message || 'Failed to delete user');
         }
       }
     }
@@ -105,34 +116,39 @@ const AddHrPage = () => {
 
     try {
       if (editingUser) {
-        // Update existing user - only email and role can be updated
         const updateData = {
           email: hrDetails.email,
           role: hrDetails.role
         };
 
         console.log('Updating user:', editingUser.id, updateData);
-        await axios.patch(`${API_URL}/users/${editingUser.id}`, updateData, { headers });
+        if (isDemoMode()) {
+          await demoStore.updateUser(editingUser.id, updateData);
+        } else {
+          await axios.patch(`${API_URL}/users/${editingUser.id}`, updateData, { headers });
+        }
         toast.success('User updated successfully');
         setEditingUser(null);
       } else {
-        // Create new user with welcome email flag
         console.log('Creating new user:', hrDetails);
-        await axios.post(`${API_URL}/users`, {
-          ...hrDetails,
-          sendWelcomeEmail: true // Add this flag to indicate welcome email should be sent
-        }, { headers });
-        toast.success('HR account created successfully and welcome email sent');
+        if (isDemoMode()) {
+          await demoStore.createUser(hrDetails);
+          toast.success('HR account created successfully (demo mode)');
+        } else {
+          await axios.post(`${API_URL}/users`, {
+            ...hrDetails,
+            sendWelcomeEmail: true
+          }, { headers });
+          toast.success('HR account created successfully and welcome email sent');
+        }
       }
       
-      // Reset form
       setHrDetails({
         email: "",
         password: "",
         role: "HR_ADMIN"
       });
 
-      // Refresh user list
       fetchUsers();
     } catch (error) {
       console.error('Error saving user:', error.response || error);
@@ -140,7 +156,7 @@ const AddHrPage = () => {
         toast.error('Session expired. Please login again.');
         navigate('/login');
       } else {
-        toast.error(error.response?.data?.message || 'Failed to save user');
+        toast.error(error.response?.data?.message || error.message || 'Failed to save user');
       }
     } finally {
       setIsLoading(false);

@@ -14,12 +14,14 @@ import AddHR from './components/Admin/addHR/page'
 import { AuthProvider, ProtectedRoute } from './contexts/AuthContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import DemoBanner from './components/DemoBanner'
 
 function App() {
 
   return (
     <Router>
       <AuthProvider>
+        <DemoBanner />
         <Routes>
           <Route path="/" element={<Home />} /> 
           <Route path="/all-jobs" element={<Alljobs />} />

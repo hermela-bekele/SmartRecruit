@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { isDemoMode } from '../../../utils/demoMode';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -31,6 +32,12 @@ const ResetPassword = () => {
     setIsLoading(true);
 
     try {
+      if (isDemoMode()) {
+        toast.success('Demo mode: password reset simulated successfully');
+        navigate('/');
+        return;
+      }
+
       await axios.post(`${API_URL}/auth/reset-password/confirm`, {
         token,
         newPassword: passwords.newPassword,

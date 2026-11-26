@@ -1,18 +1,26 @@
 import axios from 'axios';
+import { isDemoMode } from '../utils/demoMode';
+import demoStore from '../demo/demoStore';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const fetchApplications = async () => {
+  if (isDemoMode()) {
+    return demoStore.getApplications();
+  }
   const response = await axios.get(`${API_URL}/applications`);
   return response.data;
 };
 
 export const submitApplication = async (applicationData, resumeFile) => {
   try {
+    if (isDemoMode()) {
+      return await demoStore.submitApplication(applicationData, resumeFile);
+    }
+
     console.log('Creating form data for submission...');
     const formData = new FormData();
     
-    // Add application data
     formData.append('name', applicationData.name);
     formData.append('email', applicationData.email);
     formData.append('position', applicationData.position);
@@ -29,19 +37,16 @@ export const submitApplication = async (applicationData, resumeFile) => {
       formData.append('timeline', JSON.stringify(applicationData.timeline));
     }
 
-    // Validate and add resume file
     if (!resumeFile) {
       throw new Error('Resume file is required');
     }
 
-    // Validate file type
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!allowedTypes.includes(resumeFile.type)) {
       throw new Error('Invalid file type. Please upload a PDF, DOC, or DOCX file.');
     }
 
-    // Validate file size (5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    const maxSize = 5 * 1024 * 1024;
     if (resumeFile.size > maxSize) {
       throw new Error('File size too large. Maximum size is 5MB.');
     }
@@ -77,6 +82,9 @@ export const submitApplication = async (applicationData, resumeFile) => {
 };
 
 export const updateApplicationStatus = async (id, status, emailContent, emailSubject) => {
+  if (isDemoMode()) {
+    return demoStore.updateApplicationStatus(id, status);
+  }
   const response = await axios.patch(`${API_URL}/applications/${id}/status`, {
     status,
     emailContent,
@@ -87,6 +95,10 @@ export const updateApplicationStatus = async (id, status, emailContent, emailSub
 
 export const downloadResume = async (id) => {
   try {
+    if (isDemoMode()) {
+      return await demoStore.downloadResume(id);
+    }
+
     console.log('Starting resume download for application:', id);
     
     const response = await axios.get(`${API_URL}/applications/${id}/resume`, {
@@ -103,12 +115,10 @@ export const downloadResume = async (id) => {
       dataSize: response.data.size
     });
 
-    // Create a blob from the response data
     const blob = new Blob([response.data], { 
       type: response.headers['content-type'] || 'application/octet-stream' 
     });
 
-    // Get the filename from the Content-Disposition header or use a default
     const contentDisposition = response.headers['content-disposition'];
     let filename = 'resume.pdf';
     if (contentDisposition) {
@@ -124,20 +134,16 @@ export const downloadResume = async (id) => {
       blobSize: blob.size
     });
 
-    // Create a temporary URL for the blob
     const blobUrl = window.URL.createObjectURL(blob);
     
-    // Create a temporary link element
     const downloadLink = document.createElement('a');
     downloadLink.style.display = 'none';
     downloadLink.href = blobUrl;
     downloadLink.download = filename;
     
-    // Add to document, click, and remove
     document.body.appendChild(downloadLink);
     downloadLink.click();
     
-    // Clean up
     setTimeout(() => {
       document.body.removeChild(downloadLink);
       window.URL.revokeObjectURL(blobUrl);
@@ -162,5 +168,8 @@ export const downloadResume = async (id) => {
 };
 
 export const deleteApplication = async (id) => {
+  if (isDemoMode()) {
+    return demoStore.deleteApplication(id);
+  }
   await axios.delete(`${API_URL}/applications/${id}`);
 };

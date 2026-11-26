@@ -1,9 +1,15 @@
 import axios from 'axios';
+import { isDemoMode } from '../utils/demoMode';
+import demoStore from '../demo/demoStore';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const getDashboardStats = async () => {
   try {
+    if (isDemoMode()) {
+      return await demoStore.getDashboardStats();
+    }
+
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found. Please log in.');
@@ -21,7 +27,6 @@ export const getDashboardStats = async () => {
     return response.data;
   } catch (error) {
     if (error.response?.status === 401) {
-      // Clear invalid token and redirect to login
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
@@ -30,4 +35,4 @@ export const getDashboardStats = async () => {
     console.error('Error fetching dashboard stats:', error.response || error);
     throw error;
   }
-}; 
+};

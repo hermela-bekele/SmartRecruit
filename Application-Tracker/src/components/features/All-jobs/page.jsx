@@ -6,6 +6,7 @@ import { Search, Menu, Calendar, MapPin } from "lucide-react";
 import JobCard from "../JobCard";
 import JobDetailsModal from "../jobDetailsModal";
 import Footer from "../footer";
+import JobsService from "../../../services/jobs.service";
 
 function JobsPage() {
   const [jobs, setJobs] = useState([]);
@@ -26,16 +27,12 @@ function JobsPage() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch("http://localhost:3000/jobs");
-        if (!response.ok) throw new Error("Failed to fetch jobs");
-        const data = await response.json();
+        const data = await JobsService.getPublicJobs();
         setJobs(data);
 
-        // Extract unique locations
         const uniqueLocations = [...new Set(data.map((job) => job.location))];
         setLocations(uniqueLocations);
 
-        // Extract unique categories (departments)
         const uniqueCategories = [
           ...new Set(data.map((job) => job.department)),
         ];

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import authService from "../../../services/auth.service";
+import { isDemoMode, DEMO_CREDENTIALS } from "../../../utils/demoMode";
 
 function LoginModal({ onClose }) {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ function LoginModal({ onClose }) {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const demoEnabled = isDemoMode();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,6 +125,14 @@ function LoginModal({ onClose }) {
               >
                 {isLoading ? "Logging in..." : "Log In"}
               </button>
+
+              {demoEnabled && (
+                <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-3 text-left text-sm text-blue-800">
+                  <p className="font-medium mb-1">Demo mode credentials</p>
+                  <p>Admin: {DEMO_CREDENTIALS.admin.email} / {DEMO_CREDENTIALS.admin.password}</p>
+                  <p>HR: {DEMO_CREDENTIALS.hr.email} / {DEMO_CREDENTIALS.hr.password}</p>
+                </div>
+              )}
             </form>
           ) : (
             <form onSubmit={handleForgotPassword} className="space-y-4">
@@ -133,7 +144,9 @@ function LoginModal({ onClose }) {
 
               {resetEmailSent ? (
                 <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
-                  Password reset instructions have been sent to your email.
+                  {demoEnabled
+                    ? "Demo mode: password reset email simulated. Use the demo credentials to log in."
+                    : "Password reset instructions have been sent to your email."}
                 </div>
               ) : (
                 <>

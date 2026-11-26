@@ -1,20 +1,19 @@
 import axios from 'axios';
-import authService from './auth.service';
+import { isDemoMode } from '../utils/demoMode';
+import demoStore from '../demo/demoStore';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 console.log('Jobs Service initialized with API_URL:', API_URL);
 
-// Create axios instance with auth header interceptor
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
   },
-  withCredentials: true // Important for CORS with credentials
+  withCredentials: true
 });
 
-// Add auth token to requests
 api.interceptors.request.use((config) => {
   console.log('Making request to:', config.url);
   const token = localStorage.getItem('token');
@@ -27,7 +26,6 @@ api.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-// Add response interceptor for debugging
 api.interceptors.response.use((response) => {
   console.log('API Response:', {
     url: response.config.url,
@@ -50,6 +48,10 @@ api.interceptors.response.use((response) => {
 class JobsService {
   async getAllJobs(filters = {}) {
     try {
+      if (isDemoMode()) {
+        return await demoStore.getAllJobs(filters);
+      }
+
       console.log('Fetching all jobs with filters:', filters);
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -71,6 +73,10 @@ class JobsService {
 
   async getPublicJobs(filters = {}) {
     try {
+      if (isDemoMode()) {
+        return await demoStore.getPublicJobs(filters);
+      }
+
       console.log('Fetching public jobs with filters:', filters);
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -92,6 +98,10 @@ class JobsService {
 
   async getJob(id) {
     try {
+      if (isDemoMode()) {
+        return await demoStore.getJob(id);
+      }
+
       console.log('Fetching job details for ID:', id);
       const response = await api.get(`/jobs/${id}`);
       console.log('Fetched job details:', response.data);
@@ -109,11 +119,21 @@ class JobsService {
 
   async getJobApplicants(jobId) {
     try {
+      if (isDemoMode()) {
+        const applicants = await demoStore.getJobApplicants(jobId);
+        return applicants.map(applicant => ({
+          ...applicant,
+          appliedDate: applicant.appliedDate || new Date().toISOString(),
+          status: applicant.status || 'Received',
+          phone: applicant.phone || null,
+          resumePath: applicant.resumePath || null
+        }));
+      }
+
       console.log('Fetching applicants for job ID:', jobId);
       const response = await api.get(`/jobs/${jobId}/applications`);
       console.log('Fetched job applicants:', response.data);
       
-      // Ensure we return an array even if the response is empty
       const applicants = Array.isArray(response.data) ? response.data : [];
       return applicants.map(applicant => ({
         ...applicant,
@@ -135,6 +155,9 @@ class JobsService {
 
   async createJob(jobData) {
     try {
+      if (isDemoMode()) {
+        return await demoStore.createJob(jobData);
+      }
       const response = await api.post('/jobs', jobData);
       return response.data;
     } catch (error) {
@@ -144,6 +167,9 @@ class JobsService {
 
   async updateJob(id, jobData) {
     try {
+      if (isDemoMode()) {
+        return await demoStore.updateJob(id, jobData);
+      }
       const response = await api.patch(`/jobs/${id}`, jobData);
       return response.data;
     } catch (error) {
@@ -153,6 +179,10 @@ class JobsService {
 
   async deleteJob(id) {
     try {
+      if (isDemoMode()) {
+        await demoStore.deleteJob(id);
+        return;
+      }
       await api.delete(`/jobs/${id}`);
     } catch (error) {
       throw this.handleError(error);
@@ -161,6 +191,9 @@ class JobsService {
 
   async closePosition(id) {
     try {
+      if (isDemoMode()) {
+        return await demoStore.closePosition(id);
+      }
       const response = await api.patch(`/jobs/${id}/close`);
       return response.data;
     } catch (error) {
@@ -170,8 +203,6 @@ class JobsService {
 
   handleError(error) {
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
       const message = error.response.data?.message || error.response.statusText || 'An error occurred';
       console.error('Server error response:', {
         status: error.response.status,
@@ -179,16 +210,16 @@ class JobsService {
         message
       });
       return new Error(message);
+    } else if (error.message) {
+      return new Error(error.message);
     } else if (error.request) {
-      // The request was made but no response was received
       console.error('No response received:', error.request);
       return new Error('No response from server - please check if the backend is running');
     } else {
-      // Something happened in setting up the request that triggered an Error
       console.error('Request setup error:', error.message);
       return new Error('Error setting up request');
     }
   }
 }
 
-export default new JobsService(); 
+export default new JobsService();
