@@ -17,7 +17,7 @@ VITE_DEMO_MODE=true
 | Super Admin | `admin@smartrecruit.demo` | `demo123` |
 | HR Admin | `hr@smartrecruit.demo` | `demo123` |
 
-Demo data includes 12 jobs, 20 applications across pipeline statuses, and 2 users. Changes persist in `localStorage` until you click **Reset demo data** in the amber banner.
+Demo data includes 12 jobs, 20 applications across pipeline statuses, and 2 users. Changes persist in `localStorage`.
 
 ### Local demo
 
